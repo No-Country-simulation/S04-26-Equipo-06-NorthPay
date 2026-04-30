@@ -1,1 +1,3 @@
 Plataforma web de gestión de contratistas para la integración de módulos de firma digital, carga de documentos y un Dashboard administrativo con monitoreo de estados en tiempo real para el equipo de operaciones de NorthPay.
+
+Integrantes:
