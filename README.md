@@ -122,4 +122,3 @@ Desarrollado para No Country - Simulación laboral tech.
 📄 Licencia
 Este proyecto está bajo la Licencia MIT
 
-
