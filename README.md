@@ -59,13 +59,13 @@ Actualmente, el proceso de activación ocurre vía canales dispersos (email, for
 ## 🚀 Instalación Rápida (Docker)
 
 ### Prerrequisitos
-* Docker y Docker Desktop.
+* Docker Desktop (incluye Docker Compose).
 * Java 21 JDK (para desarrollo local).
+* Node.js (versión 20 o superior para Next.js 16).
 
 ### 1. Clonar el repositorio
 ```bash
 git clone https://github.com/No-Country-simulation/S04-26-Equipo-06-NorthPay.git
-cd northpay-onboarding
 ```
 
 ### 2. Configurar variables de entorno
