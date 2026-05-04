@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     networks:
       - northpay-network
     healthcheck:
@@ -40,7 +40,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./Frontend/frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
