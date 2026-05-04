@@ -36,7 +36,7 @@ Actualmente, el proceso de activación ocurre vía canales dispersos (email, for
 
 | Componente | Tecnología |
 |------------|------------|
-| **Frontend** | Next.js 16.2.4, React 19.2.5, TailwindCSS, shadcn/ui |
+| **Frontend** | Next.js 16.2.4, React 19.2.4, TailwindCSS, shadcn/ui |
 | **Backend** | Spring Boot 4.0.6 (Java 21), Spring Security + JWT |
 | **Base de Datos** | PostgreSQL 18.3 |
 | **Infraestructura** | Docker, WebSockets |
@@ -109,12 +109,13 @@ sudo docker compose -f docker-compose.prod.yml up --build
 ## 👥 Equipo
 Desarrollado para No Country - Simulación laboral tech.
 
-- Camila Barreiro. - Product Owner
-- Jorge Subeldia. - DevOps
-- Nahuel Gómez Gahn. - Backend
-- Matías Almaraz. - Backend
-- Marcos Fernández. - Backend
-- Martín Kun. - Frontend
+- Camila Barreiro - Product Owner
+- Jorge Subeldia - DevOps
+- Nahuel Gómez Gahn - Backend
+- Matías Almaraz - Backend
+- Marcos Fernández - Backend
+- Martín Kun - Frontend
+- Adriel Fariña - Frontend
 - Damián Benítez - QA
 
 ---
