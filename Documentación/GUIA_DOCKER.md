@@ -1,4 +1,4 @@
-# Guía Completa de Docker para el Proyecto CRM
+# Guía Completa de Docker para el Proyecto NorthPay
 
 Esta documentación detalla cómo utilizar el entorno Dockerizado para el desarrollo y despliegue local del proyecto NorthPay.
 
