@@ -1,0 +1,40 @@
+# --- Environment Variables ---
+.env
+.env.local
+.env.production
+*.env
+
+# --- Java / Spring Boot ---
+target/
+!.mvn/wrapper/maven-wrapper.jar
+build/
+.gradle/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+build/
+.vercel
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- IDEs ---
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# --- Docker ---
+# Generalmente no se ignoran los dockerfiles, pero sí datos persistentes
+/data/postgres/
