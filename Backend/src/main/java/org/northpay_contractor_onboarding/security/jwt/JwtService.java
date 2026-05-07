@@ -24,7 +24,7 @@ public class JwtService {
   @Value("${JWT_SECRET}")
   private String secretKey;
   private static final long tokenExpiration = 1000 * 60 * 60;
-  private static final long tokenRenewWindow = 1000 * 60 * 60 * 12;
+  // private static final long tokenRenewWindow = 1000 * 60 * 60 * 12;
 
   private Key getSecretKeyFromToken() {
     byte[] secretKeyBytes = Decoders.BASE64.decode(secretKey);

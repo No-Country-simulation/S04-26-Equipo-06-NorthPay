@@ -3,7 +3,9 @@ package org.northpay_contractor_onboarding.security.authentication;
 import java.util.Collection;
 import java.util.List;
 
+import org.northpay_contractor_onboarding.enums.Roles;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import lombok.AllArgsConstructor;
@@ -13,6 +15,7 @@ import lombok.Data;
 public class AuthenticatedUserDetails implements UserDetails {
   private String email;
   private String password;
+  private Roles role; // Vendría de un Enum
 
   @Override
   public String getUsername() {
@@ -21,7 +24,7 @@ public class AuthenticatedUserDetails implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    // TODO Auto-generated method stub
-    return List.of();
+    GrantedAuthority rolePermission = new SimpleGrantedAuthority("ROLE_" + this.getRole().toString());
+    return List.of(rolePermission);
   }
 }

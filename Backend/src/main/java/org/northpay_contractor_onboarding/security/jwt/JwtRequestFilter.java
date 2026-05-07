@@ -2,6 +2,7 @@ package org.northpay_contractor_onboarding.security.jwt;
 
 import java.io.IOException;
 
+import org.northpay_contractor_onboarding.enums.Roles;
 import org.northpay_contractor_onboarding.security.authentication.AuthenticatedUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,6 +36,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     try {
       String tokenSubject_email = jwtService.getClaim(token, claims -> claims.getSubject());
+      Roles tokenRole = Roles.OPERATOR;
       if (tokenSubject_email == null) {
         filterChain.doFilter(request, response);
         return;
@@ -53,7 +55,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         return;
       }
 
-      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(tokenSubject_email, "");
+      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(tokenSubject_email, "", tokenRole);
 
       PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
         newAuthData,
@@ -64,7 +66,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
       SecurityContextHolder.getContext().setAuthentication(newAuth);
     } catch (Exception e) {
-      // TODO: handle exception, separar por excepciones arrojadas del service y de las que no
+      // TODO: handle exceptions, separar por excepciones arrojadas del service y de las que no
+      System.out.println(e.getMessage());
     }
   }
 
