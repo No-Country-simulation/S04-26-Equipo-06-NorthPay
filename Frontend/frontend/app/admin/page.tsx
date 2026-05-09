@@ -13,9 +13,9 @@ type Contractor = {
 };
 
 const initialContractors: Contractor[] = [
-  { id: "C-001", name: "María Pérez", email: "maria.perez@example.com", stage: "Document upload", status: "pending", lastUpdate: "Hace 1h" },
-  { id: "C-002", name: "Jorge Gómez", email: "jorge.gomez@example.com", stage: "Contract signing", status: "needs-correction", lastUpdate: "Hace 2h" },
-  { id: "C-003", name: "Lucía Fernández", email: "lucia.fernandez@example.com", stage: "Payment method", status: "approved", lastUpdate: "Hace 4h" },
+  { id: "C-001", name: "Maria Perez", email: "maria.perez@example.com", stage: "Document upload", status: "pending", lastUpdate: "1h ago" },
+  { id: "C-002", name: "Jorge Gomez", email: "jorge.gomez@example.com", stage: "Contract signing", status: "needs-correction", lastUpdate: "2h ago" },
+  { id: "C-003", name: "Lucia Fernandez", email: "lucia.fernandez@example.com", stage: "Payment method", status: "approved", lastUpdate: "4h ago" },
 ];
 
 const statusStyles: Record<string, string> = {
@@ -33,10 +33,10 @@ export default function AdminPage() {
   const updateStatus = (id: string, status: Contractor["status"]) => {
     setContractors((current) =>
       current.map((contractor) =>
-        contractor.id === id ? { ...contractor, status, lastUpdate: "Ahora" } : contractor
+        contractor.id === id ? { ...contractor, status, lastUpdate: "Now" } : contractor
       )
     );
-    setNotification(`Estado actualizado a ${status.replace("-", " ")} para ${id}.`);
+    setNotification(`Status updated to ${status.replace("-", " ")} for ${id}.`);
     setTimeout(() => setNotification(""), 3500);
   };
 
@@ -46,17 +46,17 @@ export default function AdminPage() {
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/30">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Operaciones</p>
-              <h1 className="mt-3 text-3xl font-semibold text-slate-900">Panel de administración</h1>
-              <p className="mt-2 text-slate-600">Monitorea el estado de cada onboarding y envía notificaciones automáticas al contratista.</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Operations</p>
+              <h1 className="mt-3 text-3xl font-semibold text-slate-900">Admin Panel</h1>
+              <p className="mt-2 text-slate-600">Monitor the status of each onboarding and send automatic notifications to the contractor.</p>
             </div>
             <Link href="/onboarding" className="inline-flex items-center rounded-3xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700">
-              Ver onboarding
+              View onboarding
             </Link>
           </div>
           <div className="mt-6 rounded-3xl bg-slate-50 p-5 text-sm text-slate-700">
-            <p>Contratistas activos: <span className="font-semibold text-slate-900">{activeCount}</span></p>
-            <p className="mt-1">Cada cambio de estado se refleja inmediatamente y notifica al contratista.</p>
+            <p>Active contractors: <span className="font-semibold text-slate-900">{activeCount}</span></p>
+            <p className="mt-1">Each status change is reflected immediately and notifies the contractor.</p>
           </div>
         </div>
 
@@ -71,11 +71,11 @@ export default function AdminPage() {
             <thead className="bg-slate-50 text-left text-[0.86rem] uppercase tracking-[0.18em] text-slate-500">
               <tr>
                 <th className="px-6 py-4">ID</th>
-                <th className="px-6 py-4">Contratista</th>
-                <th className="px-6 py-4">Etapa</th>
-                <th className="px-6 py-4">Estado</th>
-                <th className="px-6 py-4">Última actualización</th>
-                <th className="px-6 py-4">Acciones</th>
+                <th className="px-6 py-4">Contractor</th>
+                <th className="px-6 py-4">Stage</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Last Update</th>
+                <th className="px-6 py-4">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
@@ -99,14 +99,14 @@ export default function AdminPage() {
                       onClick={() => updateStatus(contractor.id, "approved")}
                       className="rounded-2xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
                     >
-                      Aprobar
+                      Approve
                     </button>
                     <button
                       type="button"
                       onClick={() => updateStatus(contractor.id, "needs-correction")}
                       className="rounded-2xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-rose-700"
                     >
-                      Corregir
+                      Correct
                     </button>
                   </td>
                 </tr>

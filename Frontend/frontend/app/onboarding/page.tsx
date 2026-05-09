@@ -2,16 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { OnboardingData } from "./types";
 
-type OnboardingData = {
-  fullName: string;
-  email: string;
-  phone: string;
-  documentName: string;
-  contractAccepted: boolean;
-  paymentMethod: string;
-  verificationNotes: string;
-};
+// Component imports with new names
+import PersonalData from "../../components/onboarding/PersonalData";
+import DocumentUpload from "../../components/onboarding/DocumentUpload";
+import ContractSigning from "../../components/onboarding/ContractSigning";
+import PaymentMethod from "../../components/onboarding/PaymentMethod";
+import IdentityVerification from "../../components/onboarding/IdentityVerification";
 
 const initialData: OnboardingData = {
   fullName: "",
@@ -20,6 +18,7 @@ const initialData: OnboardingData = {
   documentName: "",
   contractAccepted: false,
   paymentMethod: "",
+  paymentDetails: {},
   verificationNotes: "",
 };
 
@@ -38,22 +37,28 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
 
   const currentStep = steps[stepIndex];
-
   const progress = useMemo(() => Math.round(((stepIndex + 1) / steps.length) * 100), [stepIndex]);
 
-  const handleChange = (field: keyof OnboardingData, value: string | boolean) => {
+  const handleChange = (field: keyof OnboardingData, value: any) => {
     setData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePaymentDetailsChange = (field: string, value: string) => {
+    setData((prev) => ({
+      ...prev,
+      paymentDetails: { ...prev.paymentDetails, [field]: value },
+    }));
   };
 
   const validateStep = () => {
     if (stepIndex === 0) {
       if (!data.fullName || !data.email || !data.phone) {
-        return "Complete all personal data fields.";
+        return "Please complete all personal data fields.";
       }
     }
     if (stepIndex === 1) {
       if (!data.documentName) {
-        return "Upload at least one document.";
+        return "Please upload at least one document.";
       }
     }
     if (stepIndex === 2) {
@@ -63,19 +68,38 @@ export default function OnboardingPage() {
     }
     if (stepIndex === 3) {
       if (!data.paymentMethod) {
-        return "Select a payment method.";
+        return "Please select a payment method.";
+      }
+      if (data.paymentMethod === "bank") {
+        if (!data.paymentDetails.bankName || !data.paymentDetails.accountNumber) {
+          return "Please complete the bank details.";
+        }
+        if (data.paymentDetails.accountNumber.length !== 22) {
+          return "CBU/CVU must be 22 digits long.";
+        }
+      }
+      if (data.paymentMethod === "wallet") {
+        if (!data.paymentDetails.walletAlias) {
+          return "Please enter your Wallet Alias or identifier.";
+        }
       }
     }
     return "";
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     const validation = validateStep();
     if (validation) {
       setError(validation);
       return;
     }
     setError("");
+
+    // Simulated secure submission for Step 4 (index 3)
+    if (stepIndex === 3) {
+      console.log("Sending encrypted payment data to BE-US-09...", data.paymentDetails);
+    }
+
     if (stepIndex < steps.length - 1) {
       setStepIndex((index) => index + 1);
     } else {
@@ -129,126 +153,41 @@ export default function OnboardingPage() {
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex flex-col gap-2">
               <p className="text-sm uppercase tracking-[0.24em] text-slate-500">{currentStep}</p>
-              <h2 className="text-2xl font-semibold text-slate-900">{submitted ? "Solicitud enviada" : `Paso ${stepIndex + 1}: ${currentStep}`}</h2>
+              <h2 className="text-2xl font-semibold text-slate-900">
+                {submitted ? "Application Sent" : `Step ${stepIndex + 1}: ${currentStep}`}
+              </h2>
             </div>
 
             <div className="mt-8">
               {submitted ? (
                 <div className="rounded-3xl border border-sky-100 bg-sky-50 p-6 text-slate-800">
-                  <p className="text-lg font-semibold">¡Listo!</p>
-                  <p className="mt-3 text-slate-600">Hemos recibido tu información. Queda en estado <span className="font-semibold text-slate-900">pendiente de verificación</span>. Recibirás notificaciones en cuanto haya novedades.</p>
+                  <p className="text-lg font-semibold">Done!</p>
+                  <p className="mt-3 text-slate-600">
+                    We have received your information. Your status is now <span className="font-semibold text-slate-900">pending verification</span>. You will receive notifications as soon as there are updates.
+                  </p>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link href="/admin" className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
-                      Ver estado en panel de operaciones
+                      Check status in operations panel
                     </Link>
                     <Link href="/" className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
-                      Volver al inicio
+                      Go back home
                     </Link>
                   </div>
                 </div>
               ) : (
                 <form className="space-y-8">
-                  {stepIndex === 0 && (
-                    <div className="space-y-6">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700">Nombre completo</label>
-                        <input
-                          value={data.fullName}
-                          onChange={(event) => handleChange("fullName", event.target.value)}
-                          className="mt-3 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-                          placeholder="Ej. María Pérez"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700">Correo electrónico</label>
-                        <input
-                          type="email"
-                          value={data.email}
-                          onChange={(event) => handleChange("email", event.target.value)}
-                          className="mt-3 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-                          placeholder="correo@ejemplo.com"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700">Teléfono</label>
-                        <input
-                          value={data.phone}
-                          onChange={(event) => handleChange("phone", event.target.value)}
-                          className="mt-3 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-                          placeholder="+54 9 11 1234 5678"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {stepIndex === 1 && (
-                    <div className="space-y-6">
-                      <p className="text-sm text-slate-600">Sube tus documentos oficiales para continuar con la verificación.</p>
-                      <label className="flex cursor-pointer items-center justify-between rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-700 transition hover:border-slate-400">
-                        <span>{data.documentName ? data.documentName : "Seleccionar documento"}</span>
-                        <input
-                          type="file"
-                          onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file) handleChange("documentName", file.name);
-                          }}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  {stepIndex === 2 && (
-                    <div className="space-y-6">
-                      <p className="text-sm text-slate-600">Lee y acepta las condiciones del contrato digitalizado.</p>
-                      <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-700">
-                        Al firmar electrónicamente, autorizas a NorthPay a procesar tu pago y documentación como parte del onboarding.
-                      </div>
-                      <label className="flex items-center gap-3 text-sm text-slate-700">
-                        <input
-                          type="checkbox"
-                          checked={data.contractAccepted}
-                          onChange={(event) => handleChange("contractAccepted", event.target.checked)}
-                          className="h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
-                        />
-                        Acepto el contrato digital y autorizo el proceso de activación.
-                      </label>
-                    </div>
-                  )}
-
+                  {/* Step Components */}
+                  {stepIndex === 0 && <PersonalData data={data} onChange={handleChange} />}
+                  {stepIndex === 1 && <DocumentUpload data={data} onChange={handleChange} />}
+                  {stepIndex === 2 && <ContractSigning data={data} onChange={handleChange} />}
                   {stepIndex === 3 && (
-                    <div className="space-y-6">
-                      <p className="text-sm text-slate-600">Configura el método de pago donde recibirás tus comisiones.</p>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        {[
-                          { id: "bank", label: "Cuenta bancaria" },
-                          { id: "wallet", label: "Billetera digital" },
-                        ].map((option) => (
-                          <button
-                            type="button"
-                            key={option.id}
-                            onClick={() => handleChange("paymentMethod", option.id)}
-                            className={`rounded-3xl border px-5 py-4 text-left transition ${data.paymentMethod === option.id ? "border-sky-600 bg-sky-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300"}`}>
-                            <p className="font-semibold text-slate-900">{option.label}</p>
-                            <p className="mt-2 text-sm text-slate-600">Selecciona el canal de pago preferido para recibir tus tarifas.</p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    <PaymentMethod
+                      data={data}
+                      onChange={handleChange}
+                      onPaymentDetailChange={handlePaymentDetailsChange}
+                    />
                   )}
-
-                  {stepIndex === 4 && (
-                    <div className="space-y-6">
-                      <p className="text-sm text-slate-600">Finaliza con la verificación de identidad. Nuestro equipo revisará tus datos y documentos.</p>
-                      <textarea
-                        value={data.verificationNotes}
-                        onChange={(event) => handleChange("verificationNotes", event.target.value)}
-                        rows={4}
-                        placeholder="Comparte algún dato adicional que ayude a la verificación"
-                        className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
-                      />
-                    </div>
-                  )}
+                  {stepIndex === 4 && <IdentityVerification data={data} onChange={handleChange} />}
 
                   {error && <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
 
@@ -259,14 +198,14 @@ export default function OnboardingPage() {
                       disabled={stepIndex === 0}
                       className="rounded-3xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-50 hover:bg-slate-100"
                     >
-                      Atrás
+                      Back
                     </button>
                     <button
                       type="button"
                       onClick={handleNext}
                       className="rounded-3xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
                     >
-                      {stepIndex === steps.length - 1 ? "Enviar solicitud" : "Siguiente paso"}
+                      {stepIndex === steps.length - 1 ? "Submit application" : "Next step"}
                     </button>
                   </div>
                 </form>
