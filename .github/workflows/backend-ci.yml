@@ -7,9 +7,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     defaults:
       run:
         working-directory: Backend
+
+    services:
+      postgres:
+        image: postgres:18.3
+        env:
+          POSTGRES_DB: northpay_db
+          POSTGRES_USER: user_test
+          POSTGRES_PASSWORD: password_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -20,5 +37,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
-        run: chmod +x mvnw && ./mvnw clean package
+      - name: Build and Test with Maven
+        run: |
+          chmod +x mvnw
+          ./mvnw clean verify
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/northpay_db
+          SPRING_DATASOURCE_USERNAME: user_test
+          SPRING_DATASOURCE_PASSWORD: password_test
+          JWT_SECRET: test_secret_key_123456789
