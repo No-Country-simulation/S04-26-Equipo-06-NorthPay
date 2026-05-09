@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.northpay_contractor_onboarding.dto.jwt.JwtClaimsDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -47,9 +48,10 @@ public class JwtService {
   }
 
   // Generación de token
-  public String generateToken(String name, String email) {
+  public String generateToken(JwtClaimsDTO claims, String email) {
     Map<String, Object> extraClaims = new HashMap<>();
-    extraClaims.put("name", name);
+    extraClaims.put("name", claims.name());
+    extraClaims.put("role", claims.role());
 
     long issuedAtInMs = System.currentTimeMillis();
 
