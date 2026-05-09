@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+// Clase que implementa UserDetails de Spring security, que se usa internamente para la autenticación
 @Data @AllArgsConstructor
 public class AuthenticatedUserDetails implements UserDetails {
   private String email;
