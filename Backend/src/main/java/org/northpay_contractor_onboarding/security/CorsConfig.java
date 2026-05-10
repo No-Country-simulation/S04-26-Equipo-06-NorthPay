@@ -12,7 +12,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class CorsConfig {
   // origen definido en .env (localhost:3000)
-  @Value("${CORS_ALLOWED_ORIGINS}")
+  @Value("${APP_CORS_ALLOWED_ORIGINS}")
   private String allowedOrigin;
   // El host 'frontend' viene del nombre del contenedor definido en docker compose
   // En producción tendría que ir este nomás, o el enlace de donde estaría hosteado el front
