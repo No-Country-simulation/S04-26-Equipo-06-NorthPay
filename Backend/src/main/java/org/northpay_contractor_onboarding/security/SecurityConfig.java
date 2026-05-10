@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -30,7 +32,7 @@ public class SecurityConfig {
         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Debido a que se usará JWT
       )
       .authenticationProvider(authProvider)
-      .addFilterBefore(jwtRequestFilter, JwtRequestFilter.class)
+      .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
       .cors(Customizer.withDefaults());
 
     return http.build();

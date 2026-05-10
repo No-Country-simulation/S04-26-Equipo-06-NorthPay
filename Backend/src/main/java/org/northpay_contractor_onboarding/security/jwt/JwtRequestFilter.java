@@ -69,6 +69,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       // TODO: handle exceptions, separar por excepciones arrojadas del service y de las que no
       System.out.println(e.getMessage());
     }
+    filterChain.doFilter(request, response);
   }
 
   
