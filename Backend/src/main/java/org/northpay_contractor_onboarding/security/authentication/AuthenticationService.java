@@ -25,7 +25,7 @@ public class AuthenticationService {
 
   @Transactional(readOnly = true)
   public TokenDTO login(LoginDTO inputInfo) {
-    String email = inputInfo.getEmail();
+    String email = inputInfo.email();
 
     // Revisa que en el contexto de seguridad no haya ya alguna autenticación realizada
     Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();
@@ -41,8 +41,8 @@ public class AuthenticationService {
     // En este paso es donde se guarda la autenticación en el contexto de seguridad, mediante al authenticationManager de Spring Security
     authenticationManager.authenticate(
       new UsernamePasswordAuthenticationToken(
-        new AuthenticatedUserDetails(operatorToLog.getEmail(), inputInfo.getPassword(), Roles.OPERATOR),
-        inputInfo.getPassword()
+        new AuthenticatedUserDetails(operatorToLog.getEmail(), inputInfo.password(), Roles.OPERATOR),
+        inputInfo.password()
       )
     );
 
