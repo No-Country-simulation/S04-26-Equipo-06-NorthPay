@@ -32,6 +32,7 @@ const steps = [
 
 export default function OnboardingPage() {
   const [stepIndex, setStepIndex] = useState(0);
+  const [maxStepReached, setMaxStepReached] = useState(0);
   const [data, setData] = useState<OnboardingData>(initialData);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -101,7 +102,9 @@ export default function OnboardingPage() {
     }
 
     if (stepIndex < steps.length - 1) {
-      setStepIndex((index) => index + 1);
+      const nextStep = stepIndex + 1;
+      setStepIndex(nextStep);
+      setMaxStepReached((prev) => Math.max(prev, nextStep));
     } else {
       setSubmitted(true);
     }
@@ -136,17 +139,28 @@ export default function OnboardingPage() {
             </div>
             <p className="mt-3 text-sm text-slate-600">{progress}% complete</p>
             <div className="mt-6 space-y-4">
-              {steps.map((title, index) => (
-                <div key={title} className="flex items-center gap-3">
-                  <span className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${index <= stepIndex ? "bg-sky-600 text-white" : "border border-slate-300 text-slate-500"}`}>
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{title}</p>
-                    <p className="text-sm text-slate-500">{index < stepIndex ? "Completed" : index === stepIndex ? "Current" : "Pending"}</p>
-                  </div>
-                </div>
-              ))}
+              {steps.map((title, index) => {
+                const isClickable = index <= maxStepReached;
+                const isCurrent = index === stepIndex;
+                const isCompleted = index < maxStepReached;
+                return (
+                  <button
+                    key={title}
+                    type="button"
+                    onClick={() => isClickable && setStepIndex(index)}
+                    disabled={!isClickable}
+                    className={`flex w-full items-center gap-3 text-left transition ${isClickable ? "cursor-pointer hover:opacity-80" : "cursor-not-allowed opacity-50"}`}
+                  >
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${index <= stepIndex ? "bg-sky-600 text-white" : isClickable ? "bg-sky-100 text-sky-600" : "border border-slate-300 text-slate-500"}`}>
+                      {index + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">{title}</p>
+                      <p className="text-sm text-slate-500">{isCompleted ? "Completed" : isCurrent ? "Current" : "Pending"}</p>
+                    </div>
+                  </button>
+              );
+              })}
             </div>
           </aside>
 
