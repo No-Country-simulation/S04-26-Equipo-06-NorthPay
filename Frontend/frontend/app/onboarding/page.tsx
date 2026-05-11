@@ -140,9 +140,9 @@ export default function OnboardingPage() {
             <p className="mt-3 text-sm text-slate-600">{progress}% complete</p>
             <div className="mt-6 space-y-4">
               {steps.map((title, index) => {
-                const isClickable = index <= maxStepReached;
+                const isClickable = true
                 const isCurrent = index === stepIndex;
-                const isCompleted = index < maxStepReached;
+                const isCompleted = index < stepIndex;
                 return (
                   <button
                     key={title}
