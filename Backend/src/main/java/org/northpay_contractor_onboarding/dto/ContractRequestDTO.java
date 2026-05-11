@@ -1,0 +1,17 @@
+package org.northpay_contractor_onboarding.dto;
+
+import lombok.*;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class ContractRequestDTO {
+
+    private String document_url;
+    private Boolean signed;
+    private String created_at;
+    private String onboarding_id;
+
+}
