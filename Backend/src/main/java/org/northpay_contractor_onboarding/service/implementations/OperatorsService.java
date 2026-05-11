@@ -9,6 +9,7 @@ import org.northpay_contractor_onboarding.repository.OperatorRepository;
 import org.northpay_contractor_onboarding.service.interfaces.IOperatorsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.constraints.NotNull;
@@ -21,14 +22,14 @@ public class OperatorsService implements IOperatorsService {
   private final OperatorRepository operatorRepository;
   private final BCryptPasswordEncoder passwordEncoder;
 
-  @Override
+  @Override @Transactional(readOnly = true)
   public List<OperatorDTO> getAll() {
     return operatorRepository.findAll().stream().map(
       (entity) -> new OperatorDTO(entity.getId().toString(), entity.getEmail(), entity.getName())
     ).toList();
   }
 
-  @Override
+  @Override @Transactional(readOnly = true)
   public OperatorDTO getByEmail(@NotNull String email) {
     Operators found = operatorRepository.findByEmail(email).orElseThrow(
       () -> new RuntimeException()
@@ -37,7 +38,7 @@ public class OperatorsService implements IOperatorsService {
     return new OperatorDTO(found.getId().toString(), found.getEmail(), found.getName());
   }
 
-  @Override
+  @Override @Transactional
   public OperatorDTO create(OperatorRegistrationDTO registrationDTO) {
     if (!registrationDTO.password().equals(registrationDTO.passwordConfirmation())) {
       throw new RuntimeException("La contraseña definida y su confirmación no coinciden");
