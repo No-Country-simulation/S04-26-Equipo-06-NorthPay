@@ -8,7 +8,7 @@ import org.northpay_contractor_onboarding.model.InvitationTokens;
 
 public interface IInvitationTokenService {
   List<InvitationTokenDTO> getAll();
-  InvitationTokens create(UUID onboardingId); // este debería ser usado cuando se crea un onboarding unicamente?
+  InvitationTokens create(UUID onboardingId, String contractorEmail);
   /**
    * 
    * @param token el token que viene desde la url

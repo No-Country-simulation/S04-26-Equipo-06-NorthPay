@@ -11,12 +11,13 @@ import jakarta.persistence.Id;
 /* import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne; */
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @AllArgsConstructor @NoArgsConstructor
-@Data
+@Data @Builder
 public class InvitationTokens {
   @Id @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
