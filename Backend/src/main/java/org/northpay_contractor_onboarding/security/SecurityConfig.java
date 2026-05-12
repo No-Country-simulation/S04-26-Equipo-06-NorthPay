@@ -25,15 +25,17 @@ public class SecurityConfig {
   @Bean
   SecurityFilterChain setFilterChain(HttpSecurity http) throws Exception {
     http.
-      authorizeHttpRequests(req ->
-        req.anyRequest().permitAll() // TODO: esto es temporal, definir las rutas según los roles
+      authorizeHttpRequests(req -> req
+        .requestMatchers("/api/**").permitAll()
+        .anyRequest().permitAll() // TODO: esto es temporal, definir las rutas según los roles
       )
       .sessionManagement(session ->
         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Debido a que se usará JWT
       )
       .authenticationProvider(authProvider)
       .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-      .cors(Customizer.withDefaults());
+      .cors(Customizer.withDefaults())
+      .csrf(csrf -> csrf.disable());
 
     return http.build();
   }
