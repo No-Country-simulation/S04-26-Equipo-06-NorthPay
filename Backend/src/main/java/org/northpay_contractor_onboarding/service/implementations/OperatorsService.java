@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 
@@ -39,7 +40,7 @@ public class OperatorsService implements IOperatorsService {
   }
 
   @Override @Transactional
-  public OperatorDTO create(OperatorRegistrationDTO registrationDTO) {
+  public OperatorDTO create(@Valid OperatorRegistrationDTO registrationDTO) {
     if (!registrationDTO.password().equals(registrationDTO.passwordConfirmation())) {
       throw new RuntimeException("La contraseña definida y su confirmación no coinciden");
     }
