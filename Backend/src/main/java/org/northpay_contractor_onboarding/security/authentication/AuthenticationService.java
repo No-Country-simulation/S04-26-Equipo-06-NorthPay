@@ -41,7 +41,7 @@ public class AuthenticationService {
     // En este paso es donde se guarda la autenticación en el contexto de seguridad, mediante al authenticationManager de Spring Security
     authenticationManager.authenticate(
       new UsernamePasswordAuthenticationToken(
-        new AuthenticatedUserDetails(operatorToLog.getEmail(), inputInfo.password(), Roles.OPERATOR),
+        new AuthenticatedUserDetails(operatorToLog.getEmail(), operatorToLog.getName(), inputInfo.password(), Roles.OPERATOR),
         inputInfo.password()
       )
     );

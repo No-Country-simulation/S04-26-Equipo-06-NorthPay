@@ -27,7 +27,7 @@ public class AuthenticationSystemProvider {
         () -> new NotFoundException("User not found")
       );
 
-      return new AuthenticatedUserDetails(operatorToAuthenticate.getEmail(), operatorToAuthenticate.getPassword(), Roles.OPERATOR);
+      return new AuthenticatedUserDetails(operatorToAuthenticate.getEmail(), operatorToAuthenticate.getName(), operatorToAuthenticate.getPassword(), Roles.OPERATOR);
     };
   }
 
