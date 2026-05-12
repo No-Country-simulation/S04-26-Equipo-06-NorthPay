@@ -19,8 +19,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 
-
-
 @RestController
 @RequestMapping("/operator")
 @Validated
@@ -42,4 +40,6 @@ public class OperatorController {
   public ResponseEntity<OperatorDTO> register(@Valid @RequestBody OperatorRegistrationDTO dto) {
     return new ResponseEntity<>(operatorsService.create(dto), HttpStatus.CREATED);
   }
+
+  // TODO: método para cambiar contraseña, cambiar mail, y borrar
 }
