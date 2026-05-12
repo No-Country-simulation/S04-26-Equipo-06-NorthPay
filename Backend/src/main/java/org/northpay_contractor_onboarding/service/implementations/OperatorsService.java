@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -30,7 +30,7 @@ public class OperatorsService implements IOperatorsService {
   }
 
   @Override @Transactional(readOnly = true)
-  public OperatorDTO getByEmail(@NotNull String email) {
+  public OperatorDTO getByEmail(@Email String email) {
     Operators found = operatorRepository.findByEmail(email).orElseThrow(
       () -> new RuntimeException()
     );
