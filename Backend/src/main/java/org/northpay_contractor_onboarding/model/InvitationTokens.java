@@ -1,7 +1,10 @@
 package org.northpay_contractor_onboarding.model;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,9 +27,16 @@ public class InvitationTokens {
   @Column(unique = true)
   private String token;
   private Boolean used;
+  /**
+   * Esta valor puede sacarse del token JWT, para así no tener que llamar a la base de datos
+   */
+  @Column(updatable = false, name = "created_by")
+  private String operatorName;
 
   @Column(updatable = false)
   private LocalDateTime expiresAt;
+  @CreationTimestamp
+  private Instant createdAt;
 
   /* @OneToOne
   @JoinColumn(name = "onboarding_id")

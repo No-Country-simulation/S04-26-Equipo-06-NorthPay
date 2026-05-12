@@ -1,3 +1,11 @@
 package org.northpay_contractor_onboarding.dto;
 
-public record InvitationTokenDTO(String id, String token, boolean used, String expiresAt, String onboardingId) {}
+public record InvitationTokenDTO(
+  String id,
+  String token,
+  boolean used,
+  String expiresAt,
+  String createdAt,
+  String createdBy,
+  String onboardingId
+) {}

@@ -20,11 +20,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InvitationTokenService implements IInvitationTokenService {
   private final InvitationTokenRepository invitationTokenRepository;
-  
+
   @Override
   public List<InvitationTokenDTO> getAll() {
     return invitationTokenRepository.findAll().stream().map(
-      entity -> new InvitationTokenDTO(entity.getId().toString(), entity.getToken(), entity.getUsed(), entity.getExpiresAt().toString(), entity.getOnboardingId().toString()) 
+      entity -> new InvitationTokenDTO(
+        entity.getId().toString(),
+        entity.getToken(),
+        entity.getUsed(),
+        entity.getExpiresAt().toString(),
+        entity.getCreatedAt().toString(),
+        entity.getOperatorName().toString(),
+        entity.getOnboardingId().toString()
+      ) 
     ).toList();
   }
 
@@ -58,6 +66,7 @@ public class InvitationTokenService implements IInvitationTokenService {
       () -> new NotFoundException("")
     );
 
+    tokenEntity.toString();
     // llamar al servicio del mail para enviar la contraseña de un solo uso al contratista (OTP - One Time Password)
     // si ese servicio falla debe devolver algún status 500
 
