@@ -15,5 +15,8 @@ public interface IInvitationTokenService {
    * @return true si el token está expirado
    */
   boolean checkInvitationTokenIsExpired(String token);
-  void setToUsed(String token);
+
+  void accessToToken(String token);
+
+  void validateOtpForToken(String token, String code);
 }

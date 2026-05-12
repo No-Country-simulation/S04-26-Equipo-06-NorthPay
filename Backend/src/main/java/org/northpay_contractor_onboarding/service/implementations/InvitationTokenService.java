@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.InvitationTokenDTO;
+import org.northpay_contractor_onboarding.exception.NotFoundException;
 import org.northpay_contractor_onboarding.model.InvitationTokens;
 import org.northpay_contractor_onboarding.repository.InvitationTokenRepository;
 import org.northpay_contractor_onboarding.service.interfaces.IInvitationTokenService;
@@ -46,14 +47,26 @@ public class InvitationTokenService implements IInvitationTokenService {
 
   @Override
   public boolean checkInvitationTokenIsExpired(String token) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'checkInvitationTokenIsExpired'");
+    return invitationTokenRepository.findByToken(token).orElseThrow(
+      () -> new NotFoundException("")
+    ).getExpiresAt().isBefore(LocalDateTime.now());
   }
 
   @Override
-  public void setToUsed(String token) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'setToUsed'");
+  public void accessToToken(String token) {
+    InvitationTokens tokenEntity = invitationTokenRepository.findByToken(token).orElseThrow(
+      () -> new NotFoundException("")
+    );
+
+    // llamar al servicio del mail para enviar la contraseña de un solo uso al contratista (OTP - One Time Password)
+    // si ese servicio falla debe devolver algún status 500
+
+    // también debería generar el jwt?
   }
-  
+
+  @Override
+  public void validateOtpForToken(String token, String code) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'validateOtpForToken'");
+  }
 }
