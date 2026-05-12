@@ -29,6 +29,11 @@ public class SecurityConfig {
         .requestMatchers("/api/**").permitAll()
         .anyRequest().permitAll() // TODO: esto es temporal, definir las rutas según los roles
       )
+
+      .formLogin(formLogin -> formLogin.disable()) // Deshabilita la redirección al GET /login default de spring
+      .logout(logout -> logout.disable())
+      .httpBasic(httpBasic -> httpBasic.disable()) // Deshabilita el método de autenticación Basic que viene por default en spring
+
       .sessionManagement(session ->
         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Debido a que se usará JWT
       )
