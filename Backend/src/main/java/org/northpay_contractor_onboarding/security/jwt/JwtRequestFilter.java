@@ -43,8 +43,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       }
 
       String token_userName = jwtService.getClaim(token, claims -> claims.get("name", String.class));
-
-      if (jwtService.isTokenExpired(token_userName)) {
+      if (jwtService.isTokenExpired(token)) {
         filterChain.doFilter(request, response);
         return;
       }
@@ -55,8 +54,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         return;
       }
 
-      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(tokenSubject_email, "", tokenRole);
-
+      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(tokenSubject_email, token_userName, "", tokenRole);
       PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
         newAuthData,
         null
@@ -67,10 +65,21 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       SecurityContextHolder.getContext().setAuthentication(newAuth);
     } catch (Exception e) {
       // TODO: handle exceptions, separar por excepciones arrojadas del service y de las que no
-      System.out.println(e.getMessage());
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+
+      response.getWriter().write("""
+      {
+        "status": 401,
+        "error": "Unauthorized",
+        "message": "Invalid token"
+      }
+      """);
+      System.out.println("Fallo al validar token" + e.getMessage());
+
+      return;
     }
     filterChain.doFilter(request, response);
   }
-
-  
 }

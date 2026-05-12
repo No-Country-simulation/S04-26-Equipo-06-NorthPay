@@ -1,3 +1,8 @@
 package org.northpay_contractor_onboarding.dto.authentication;
 
-public record LoginDTO(String email, String password) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record LoginDTO(
+  @NotBlank String email,
+  @NotBlank String password
+) {}
