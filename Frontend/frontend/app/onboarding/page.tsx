@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { OnboardingData } from "./types";
 
-// Component imports with new names
 import PersonalData from "../../components/onboarding/PersonalData";
 import DocumentUpload from "../../components/onboarding/DocumentUpload";
 import ContractSigning from "../../components/onboarding/ContractSigning";
@@ -12,13 +11,17 @@ import PaymentMethod from "../../components/onboarding/PaymentMethod";
 import IdentityVerification from "../../components/onboarding/IdentityVerification";
 
 const initialData: OnboardingData = {
-  fullName: "",
+  firstName: "",
+  lastName: "",
   email: "",
   phone: "",
   documentName: "",
   contractAccepted: false,
   paymentMethod: "",
-  paymentDetails: {},
+  paymentDetails: {
+    walletAddress: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+  },
+  isPaymentVerified: false,
   verificationNotes: "",
 };
 
@@ -35,7 +38,33 @@ export default function OnboardingPage() {
   const [maxStepReached, setMaxStepReached] = useState(0);
   const [data, setData] = useState<OnboardingData>(initialData);
   const [submitted, setSubmitted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
+
+  // 1. Load progress from sessionStorage on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem("onboarding_progress");
+    if (saved) {
+      try {
+        const { stepIndex: s, data: d, maxStepReached: m } = JSON.parse(saved);
+        setStepIndex(s);
+        setData(d);
+        setMaxStepReached(m);
+      } catch (e) {
+        console.error("Error loading onboarding progress", e);
+      }
+    }
+  }, []);
+
+  // 2. Save progress to sessionStorage on every change
+  useEffect(() => {
+    sessionStorage.setItem("onboarding_progress", JSON.stringify({ stepIndex, data, maxStepReached }));
+  }, [stepIndex, data, maxStepReached]);
+
+  // Clear error when changing steps
+  useEffect(() => {
+    setError("");
+  }, [stepIndex]);
 
   const currentStep = steps[stepIndex];
   const progress = useMemo(() => Math.round(((stepIndex + 1) / steps.length) * 100), [stepIndex]);
@@ -53,7 +82,7 @@ export default function OnboardingPage() {
 
   const validateStep = () => {
     if (stepIndex === 0) {
-      if (!data.fullName || !data.email || !data.phone) {
+      if (!data.firstName.trim() || !data.lastName.trim() || !data.email.trim() || !data.phone.trim()) {
         return "Please complete all personal data fields.";
       }
     }
@@ -68,21 +97,8 @@ export default function OnboardingPage() {
       }
     }
     if (stepIndex === 3) {
-      if (!data.paymentMethod) {
-        return "Please select a payment method.";
-      }
-      if (data.paymentMethod === "bank") {
-        if (!data.paymentDetails.bankName || !data.paymentDetails.accountNumber) {
-          return "Please complete the bank details.";
-        }
-        if (data.paymentDetails.accountNumber.length !== 22) {
-          return "CBU/CVU must be 22 digits long.";
-        }
-      }
-      if (data.paymentMethod === "wallet") {
-        if (!data.paymentDetails.walletAlias) {
-          return "Please enter your Wallet Alias or identifier.";
-        }
+      if (!data.paymentMethod || !data.isPaymentVerified) {
+        return "PENDING_VERIFICATION";
       }
     }
     return "";
@@ -159,7 +175,7 @@ export default function OnboardingPage() {
                       <p className="text-sm text-slate-500">{isCompleted ? "Completed" : isCurrent ? "Current" : "Pending"}</p>
                     </div>
                   </button>
-              );
+                );
               })}
             </div>
           </aside>
@@ -217,9 +233,17 @@ export default function OnboardingPage() {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="rounded-3xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
+                      disabled={(stepIndex === 3 && !!validateStep()) || isProcessing}
+                      className="rounded-3xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
                     >
-                      {stepIndex === steps.length - 1 ? "Submit application" : "Next step"}
+                      {isProcessing ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Processing...
+                        </>
+                      ) : (
+                        stepIndex === steps.length - 1 ? "Submit application" : "Next step"
+                      )}
                     </button>
                   </div>
                 </form>
