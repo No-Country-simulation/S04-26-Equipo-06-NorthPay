@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -24,6 +25,7 @@ public class AuthenticationController {
   }
 
   @PostMapping("/logout")
+  @PreAuthorize("hasAnyRole('ROLE_OPERATOR')")
   public ResponseEntity<TokenDTO> logout() {
     return new ResponseEntity<TokenDTO>(authenticationService.logout(), HttpStatus.OK);
   }

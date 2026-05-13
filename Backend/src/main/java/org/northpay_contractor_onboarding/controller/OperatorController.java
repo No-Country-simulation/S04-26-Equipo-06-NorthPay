@@ -7,6 +7,7 @@ import org.northpay_contractor_onboarding.dto.operatorDtos.OperatorRegistrationD
 import org.northpay_contractor_onboarding.service.implementations.OperatorsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,10 +28,12 @@ public class OperatorController {
   private final OperatorsService operatorsService;
 
   @GetMapping()
+  @PreAuthorize("hasAnyRole('ROLE_OPERATOR')")
   public ResponseEntity<List<OperatorDTO>> getAll() {
     return new ResponseEntity<>(operatorsService.getAll(), HttpStatus.OK);
   }
   
+  @PreAuthorize("hasAnyRole('ROLE_OPERATOR')")
   @GetMapping("/{email}")
   public ResponseEntity<OperatorDTO> getByEmail(@Email @PathVariable String email) {
     return new ResponseEntity<>(operatorsService.getByEmail(email), HttpStatus.OK);
