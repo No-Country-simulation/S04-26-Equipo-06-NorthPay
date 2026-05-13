@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface InvitationTokenRepository extends JpaRepository<InvitationTokens, UUID> {
-  Optional<InvitationTokens> findByToken(String token);
+  Optional<InvitationTokens> findByTokenUrl(String tokenUrl);
 }
