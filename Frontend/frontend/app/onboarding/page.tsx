@@ -71,6 +71,7 @@ export default function OnboardingPage() {
 
   const handleChange = (field: keyof OnboardingData, value: any) => {
     setData((prev) => ({ ...prev, [field]: value }));
+    if (error) setError("");
   };
 
   const handlePaymentDetailsChange = (field: string, value: string) => {
@@ -101,6 +102,12 @@ export default function OnboardingPage() {
         return "PENDING_VERIFICATION";
       }
     }
+    if (stepIndex === 4) {
+      const notes = data.verificationNotes?.toLowerCase() || "";
+      if (!notes.includes("verification in progress")) {
+        return "Please complete the identity verification process before submitting.";
+      }
+    }
     return "";
   };
 
@@ -114,7 +121,7 @@ export default function OnboardingPage() {
 
     // Simulated secure submission for Step 4 (index 3)
     if (stepIndex === 3) {
-      console.log("Sending encrypted payment data to BE-US-09...", data.paymentDetails);
+      console.log("Sending encrypted payment data...", data.paymentDetails);
     }
 
     if (stepIndex < steps.length - 1) {
@@ -122,7 +129,28 @@ export default function OnboardingPage() {
       setStepIndex(nextStep);
       setMaxStepReached((prev) => Math.max(prev, nextStep));
     } else {
-      setSubmitted(true);
+      setIsProcessing(true);
+      
+      try {
+        // LLAMADA AL BACKEND. Usar la url real
+        // const response = await fetch("https://api.northpay.com/v1/onboarding/complete", {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify(data),
+        // });
+        // if (!response.ok) throw new Error("Onboarding submission failed");
+
+        // Simulación de delay
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        
+        setSubmitted(true);
+        sessionStorage.removeItem("onboarding_progress");
+      } catch (e) {
+        console.error("Error submitting onboarding:", e);
+        setError("There was an error submitting your application. Please try again.");
+      } finally {
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -156,7 +184,7 @@ export default function OnboardingPage() {
             <p className="mt-3 text-sm text-slate-600">{progress}% complete</p>
             <div className="mt-6 space-y-4">
               {steps.map((title, index) => {
-                const isClickable = true
+                const isClickable = !submitted;
                 const isCurrent = index === stepIndex;
                 const isCompleted = index < stepIndex;
                 return (
@@ -190,16 +218,48 @@ export default function OnboardingPage() {
 
             <div className="mt-8">
               {submitted ? (
-                <div className="rounded-3xl border border-sky-100 bg-sky-50 p-6 text-slate-800">
-                  <p className="text-lg font-semibold">Done!</p>
-                  <p className="mt-3 text-slate-600">
-                    We have received your information. Your status is now <span className="font-semibold text-slate-900">pending verification</span>. You will receive notifications as soon as there are updates.
-                  </p>
-                  <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <Link href="/admin" className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
-                      Check status in operations panel
+                <div className="animate-in fade-in zoom-in-95 duration-700 space-y-8">
+                  <div className="rounded-3xl border border-sky-100 bg-sky-50 p-8 text-slate-800 shadow-sm">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-200 mb-6">
+                      <span className="text-3xl">🚀</span>
+                    </div>
+                    <h3 className="text-2xl font-semibold text-slate-900">Application Sent Successfully!</h3>
+                    <p className="mt-3 text-slate-600 leading-relaxed">
+                      We have received your information. Your status is now <span className="font-semibold text-sky-700 underline decoration-sky-300 underline-offset-4">pending verification</span>. Our compliance team will review your documents within the next 24-48 hours.
+                    </p>
+
+                    {/* Summary Section */}
+                    <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 space-y-4">
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Application Summary</p>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-slate-500">Name</p>
+                          <p className="font-medium text-slate-900">{data.firstName} {data.lastName}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Email</p>
+                          <p className="font-medium text-slate-900">{data.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Payment Method</p>
+                          <p className="font-medium text-slate-900 uppercase">{data.paymentMethod}</p>
+                        </div>
+                        <div>
+                          <p className="text-slate-500">Status</p>
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 border border-amber-100">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            Pending Review
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    <Link href="/admin" className="flex-1 rounded-2xl bg-slate-900 px-6 py-4 text-center text-sm font-semibold text-white transition hover:bg-slate-700 shadow-xl shadow-slate-200">
+                      Check operations panel
                     </Link>
-                    <Link href="/" className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
+                    <Link href="/" className="flex-1 rounded-2xl border border-slate-300 px-6 py-4 text-center text-sm font-semibold text-slate-900 transition hover:bg-slate-100">
                       Go back home
                     </Link>
                   </div>
@@ -217,7 +277,13 @@ export default function OnboardingPage() {
                       onPaymentDetailChange={handlePaymentDetailsChange}
                     />
                   )}
-                  {stepIndex === 4 && <IdentityVerification data={data} onChange={handleChange} />}
+                  {stepIndex === 4 && (
+                    <IdentityVerification 
+                      data={data} 
+                      onChange={handleChange} 
+                      clearError={() => setError("")} 
+                    />
+                  )}
 
                   {error && <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</p>}
 
@@ -234,15 +300,15 @@ export default function OnboardingPage() {
                       type="button"
                       onClick={handleNext}
                       disabled={(stepIndex === 3 && !!validateStep()) || isProcessing}
-                      className="rounded-3xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+                      className="flex items-center justify-center gap-2 rounded-3xl bg-sky-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 min-w-[160px]"
                     >
                       {isProcessing ? (
                         <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Processing...
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+                          <span>Processing...</span>
                         </>
                       ) : (
-                        stepIndex === steps.length - 1 ? "Submit application" : "Next step"
+                        <span>{stepIndex === steps.length - 1 ? "Submit application" : "Next step"}</span>
                       )}
                     </button>
                   </div>
