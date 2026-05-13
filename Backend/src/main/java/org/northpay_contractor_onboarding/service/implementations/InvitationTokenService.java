@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.northpay_contractor_onboarding.dto.ContractorNameDTO;
 import org.northpay_contractor_onboarding.dto.InvitationTokenDTO;
 import org.northpay_contractor_onboarding.dto.authentication.InvTokenContractorSignUp;
 import org.northpay_contractor_onboarding.dto.jwt.JwtClaimsDTO;
@@ -129,6 +130,10 @@ public class InvitationTokenService implements IInvitationTokenService {
       throw new RuntimeException("Wrong password"); // status 406
 
     try {
+      ContractorNameDTO relatedContractorName = invitationTokenRepository.getRelatedContractorNameByTokenUrl(tokenUrl);
+      System.out.println(relatedContractorName.toString());
+      String contractorFullName = relatedContractorName.firstName() + " " + relatedContractorName.lastName();
+
       AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(referredToken.getContractorEmail(), "", "", Roles.CONTRACTOR);
       PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
         newAuthData,
@@ -137,7 +142,7 @@ public class InvitationTokenService implements IInvitationTokenService {
       newAuth.setAuthenticated(true);
       SecurityContextHolder.getContext().setAuthentication(newAuth);
 
-      String token = jwtService.generateToken(new JwtClaimsDTO("", Roles.CONTRACTOR, JwtTypes.contractorAuth), referredToken.getContractorEmail());
+      String token = jwtService.generateToken(new JwtClaimsDTO(contractorFullName, Roles.CONTRACTOR, JwtTypes.contractorAuth), referredToken.getContractorEmail());
       return new TokenDTO(token, "");
     } catch (Exception e) {
       // TODO: handle exception
