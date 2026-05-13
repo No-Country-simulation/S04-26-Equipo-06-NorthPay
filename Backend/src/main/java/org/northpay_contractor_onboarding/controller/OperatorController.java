@@ -21,7 +21,7 @@ import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/operator")
+@RequestMapping("/api/v1/operator")
 @Validated
 @RequiredArgsConstructor
 public class OperatorController {
