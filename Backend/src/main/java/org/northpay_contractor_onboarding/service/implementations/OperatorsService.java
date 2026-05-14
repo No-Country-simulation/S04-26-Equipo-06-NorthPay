@@ -1,10 +1,17 @@
 package org.northpay_contractor_onboarding.service.implementations;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.northpay_contractor_onboarding.dto.operatorDtos.OperatorDTO;
 import org.northpay_contractor_onboarding.dto.operatorDtos.OperatorRegistrationDTO;
+import org.northpay_contractor_onboarding.enums.OnboardingStatus;
+import org.northpay_contractor_onboarding.model.ContactInformation;
+import org.northpay_contractor_onboarding.model.Contractor;
+import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.model.Operators;
+import org.northpay_contractor_onboarding.repository.ContractorRepository;
+import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.northpay_contractor_onboarding.repository.OperatorRepository;
 import org.northpay_contractor_onboarding.service.interfaces.IOperatorsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,6 +29,9 @@ import lombok.RequiredArgsConstructor;
 public class OperatorsService implements IOperatorsService {
   private final OperatorRepository operatorRepository;
   private final BCryptPasswordEncoder passwordEncoder;
+  
+  private final OnboardingRepository onboardingRepository;
+  private final ContractorRepository contractorRepository;
 
   @Override @Transactional(readOnly = true)
   public List<OperatorDTO> getAll() {
@@ -54,5 +64,21 @@ public class OperatorsService implements IOperatorsService {
     );
 
     return new OperatorDTO(registered.getId().toString(), registered.getEmail(), registered.getName());
+  }
+
+  // method for dev env
+  public Onboarding createOnboardingTEST() {
+    Contractor contractor = contractorRepository.save(Contractor.builder()
+      .firstName("fN")
+      .lastName("LN")
+      .contactInformation(ContactInformation.builder().email("contractor@email.com").build())
+      .createdAt(LocalDateTime.now())
+    .build());
+
+    return onboardingRepository.save(Onboarding.builder()
+      .contractor(contractor)
+      .status(OnboardingStatus.INVITED)
+      .currentStep(0)
+    .build());
   }
 }
