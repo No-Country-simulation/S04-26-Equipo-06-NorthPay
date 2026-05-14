@@ -4,14 +4,15 @@ import java.util.List;
 import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.InvitationTokenDTO;
+import org.northpay_contractor_onboarding.dto.authentication.ContractorLoginDTO;
 import org.northpay_contractor_onboarding.dto.authentication.InvTokenContractorSignUp;
 import org.northpay_contractor_onboarding.dto.jwt.TokenDTO;
-import org.northpay_contractor_onboarding.model.InvitationTokens;
 import org.northpay_contractor_onboarding.security.authentication.AuthenticatedUserDetails;
 
 public interface IInvitationTokenService {
   List<InvitationTokenDTO> getAll();
-  InvitationTokens create(UUID onboardingId, String contractorEmail, AuthenticatedUserDetails authOperator);
+  InvitationTokenDTO create(UUID onboardingId, String contractorEmail, AuthenticatedUserDetails authOperator);
+
   /**
    * 
    * @param token el token que viene desde la url
@@ -21,5 +22,5 @@ public interface IInvitationTokenService {
 
   TokenDTO useTokenForFirstTime(InvTokenContractorSignUp data);
 
-  TokenDTO login(String tokenUrl, String password);
+  TokenDTO login(ContractorLoginDTO loginInfo);
 }

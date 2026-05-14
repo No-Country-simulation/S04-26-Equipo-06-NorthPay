@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.ContractorNameDTO;
 import org.northpay_contractor_onboarding.dto.InvitationTokenDTO;
+import org.northpay_contractor_onboarding.dto.authentication.ContractorLoginDTO;
 import org.northpay_contractor_onboarding.dto.authentication.InvTokenContractorSignUp;
 import org.northpay_contractor_onboarding.dto.jwt.JwtClaimsDTO;
 import org.northpay_contractor_onboarding.dto.jwt.TokenDTO;
@@ -58,7 +59,7 @@ public class InvitationTokenService implements IInvitationTokenService {
   }
 
   @Override
-  public InvitationTokens create(@NotNull UUID onboardingId, @NotNull String contractorEmail, AuthenticatedUserDetails loggedOperator) {
+  public InvitationTokenDTO create(@NotNull UUID onboardingId, @NotNull String contractorEmail, AuthenticatedUserDetails loggedOperator) {
     Onboarding onboardingFather = onboardingRepository.findById(onboardingId).orElseThrow(
       () -> new NotFoundException("Onboarding with id '%s' is not found".formatted(onboardingId.toString()))
     );
@@ -75,9 +76,19 @@ public class InvitationTokenService implements IInvitationTokenService {
       .onboarding(onboardingFather)
     .build());
 
-    // si el paso anterior es exitoso acá se llamaría al servicio que manda el mail al contratista
+    // si el paso anterior es exitoso acá se llamaría al servicio que manda el mail al contratista con el enlace
 
-    return newInvToken;
+    return InvitationTokenDTO.builder()
+      .id(newInvToken.getId().toString())
+      .tokenUrl(newInvToken.getTokenUrl())
+      .used(newInvToken.getUsed())
+      .isValid(newInvToken.getIsValid())
+      .contractorEmail(newInvToken.getContractorEmail())
+      .expiresAt(newInvToken.getExpiresAt().toString())
+      .createdAt(newInvToken.getCreatedAt().toString())
+      .createdBy(newInvToken.getOperatorEmail().toString())
+      .onboardingId(newInvToken.getOnboarding().getId().toString())
+    .build();
   }
 
   @Override
@@ -114,23 +125,25 @@ public class InvitationTokenService implements IInvitationTokenService {
       .password(encoder.encode(info.password()))
     .build());
 
-    return this.login(info.tokenUrl(), info.password());
+    // debe mandar mail de que se creó contraseña y registrar esto en la base de datos
+
+    return this.login(new ContractorLoginDTO(info.tokenUrl(), info.password()));
   }
 
   @Override
-  public TokenDTO login(String tokenUrl, String password) {
-    InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
-      () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
+  public TokenDTO login(ContractorLoginDTO loginInfo) {
+    InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(loginInfo.tokenUrl()).orElseThrow(
+      () -> new NotFoundException("Invitation with token '%s' not found".formatted(loginInfo.tokenUrl()))
     );
 
     if (!referredToken.getIsValid())
       throw new RuntimeException("This token has been invalidated"); // debe arrojar 403 Forbidden
 
-    if (encoder.matches(password, referredToken.getPassword()))
+    if (encoder.matches(loginInfo.password(), referredToken.getPassword()))
       throw new RuntimeException("Wrong password"); // status 406
 
     try {
-      ContractorNameDTO relatedContractorName = invitationTokenRepository.getRelatedContractorNameByTokenUrl(tokenUrl);
+      ContractorNameDTO relatedContractorName = invitationTokenRepository.getRelatedContractorNameByTokenUrl(loginInfo.tokenUrl());
       System.out.println(relatedContractorName.toString());
       String contractorFullName = relatedContractorName.firstName() + " " + relatedContractorName.lastName();
 
