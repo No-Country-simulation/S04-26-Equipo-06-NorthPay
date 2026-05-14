@@ -131,7 +131,7 @@ public class InvitationTokenService implements IInvitationTokenService {
   }
 
   @Override
-  public TokenDTO login(ContractorLoginDTO loginInfo) {
+  public TokenDTO login(@Valid ContractorLoginDTO loginInfo) {
     InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(loginInfo.tokenUrl()).orElseThrow(
       () -> new NotFoundException("Invitation with token '%s' not found".formatted(loginInfo.tokenUrl()))
     );

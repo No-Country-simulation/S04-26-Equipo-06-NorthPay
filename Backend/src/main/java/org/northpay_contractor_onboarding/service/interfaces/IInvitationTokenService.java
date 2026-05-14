@@ -9,9 +9,12 @@ import org.northpay_contractor_onboarding.dto.authentication.InvTokenContractorS
 import org.northpay_contractor_onboarding.dto.jwt.TokenDTO;
 import org.northpay_contractor_onboarding.security.authentication.AuthenticatedUserDetails;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
 public interface IInvitationTokenService {
   List<InvitationTokenDTO> getAll();
-  InvitationTokenDTO create(UUID onboardingId, String contractorEmail, AuthenticatedUserDetails authOperator);
+  InvitationTokenDTO create(@NotNull UUID onboardingId, @NotNull String contractorEmail, AuthenticatedUserDetails authOperator);
 
   /**
    * 
@@ -20,7 +23,7 @@ public interface IInvitationTokenService {
    */
   boolean checkInvitationTokenUrlIsExpired(String tokenUrl);
 
-  TokenDTO useTokenForFirstTime(InvTokenContractorSignUp data);
+  TokenDTO useTokenForFirstTime(@Valid InvTokenContractorSignUp data);
 
-  TokenDTO login(ContractorLoginDTO loginInfo);
+  TokenDTO login(@Valid ContractorLoginDTO loginInfo);
 }

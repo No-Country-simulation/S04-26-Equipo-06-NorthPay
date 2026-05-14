@@ -36,13 +36,13 @@ public class InvitationTokenController {
   private final InvitationTokenService invTokenService;
 
   @GetMapping("")
-  @PreAuthorize("hasAnyRole('ROLE_OPERATOR')")
+  @PreAuthorize("hasAnyRole('OPERATOR')")
   public ResponseEntity<List<InvitationTokenDTO>> getAll() {
     return new ResponseEntity<>(invTokenService.getAll(), HttpStatus.OK);
   }
   
   @PostMapping("")
-  @PreAuthorize("hasAnyRole('ROLE_OPERATOR')")
+  @PreAuthorize("hasAnyRole('OPERATOR')")
   public ResponseEntity<InvitationTokenDTO> createToken(
     @NotBlank @RequestParam String onboardingId,
     @NotBlank @RequestParam String contractorEmail,
