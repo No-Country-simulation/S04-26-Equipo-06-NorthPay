@@ -23,7 +23,7 @@ public interface IInvitationTokenService {
    */
   boolean checkInvitationTokenUrlIsExpired(String tokenUrl);
 
-  TokenDTO useTokenForFirstTime(@Valid InvTokenContractorSignUp data);
+  void useTokenForFirstTime(@Valid InvTokenContractorSignUp data);
 
   TokenDTO login(@Valid ContractorLoginDTO loginInfo);
 }

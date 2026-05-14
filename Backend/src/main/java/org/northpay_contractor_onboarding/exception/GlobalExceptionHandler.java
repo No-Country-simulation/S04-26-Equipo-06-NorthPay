@@ -25,4 +25,11 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
+/* 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<StackTraceElement[]> handleRuntimeExceptions(RuntimeException ex) {
+        
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getStackTrace());
+    } */
 }

@@ -55,8 +55,9 @@ public class InvitationTokenController {
   }
 
   @PatchMapping("/first-time-use")
-  public ResponseEntity<TokenDTO> useTokenForFirstTime(@Valid @RequestBody InvTokenContractorSignUp data) {
-    return new ResponseEntity<>(invTokenService.useTokenForFirstTime(data), HttpStatus.OK);
+  public ResponseEntity<Void> useTokenForFirstTime(@Valid @RequestBody InvTokenContractorSignUp data) {
+    invTokenService.useTokenForFirstTime(data);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @PostMapping("/login")

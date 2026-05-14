@@ -27,7 +27,7 @@ public class AuthenticationController {
   }
 
   @PostMapping("/logout")
-  @PreAuthorize("hasAnyRole('ROLE_OPERATOR')")
+  @PreAuthorize("hasAnyRole('OPERATOR')")
   public ResponseEntity<TokenDTO> logout() {
     return new ResponseEntity<TokenDTO>(authenticationService.logout(), HttpStatus.OK);
   }

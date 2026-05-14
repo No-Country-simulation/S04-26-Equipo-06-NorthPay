@@ -95,14 +95,14 @@ public class InvitationTokenService implements IInvitationTokenService {
   public boolean checkInvitationTokenUrlIsExpired(String tokenUrl) {
     return invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
       () -> new NotFoundException("")
-    ).getExpiresAt().isBefore(LocalDateTime.now());
+    ).getExpiresAt().isAfter(LocalDateTime.now());
   }
   public boolean checkInvitationTokenUrlIsExpired(InvitationTokens invToken) {
-    return invToken.getExpiresAt().isBefore(LocalDateTime.now());
+    return invToken.getExpiresAt().isAfter(LocalDateTime.now());
   }
 
   @Override
-  public TokenDTO useTokenForFirstTime(@Valid InvTokenContractorSignUp info) {
+  public void useTokenForFirstTime(@Valid InvTokenContractorSignUp info) {
     InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(info.tokenUrl()).orElseThrow(
       () -> new NotFoundException("Invitation with token '%s' not found".formatted(info.tokenUrl()))
     );
@@ -116,7 +116,7 @@ public class InvitationTokenService implements IInvitationTokenService {
     if (referredToken.getUsed() && referredToken.getIsValid()) 
       throw new RuntimeException("This invitation token has already been used, cannot set a new password. Use login endpoint instead"); 
       // debe arrojar status 400 que corresponda a que el endpoint no es el correcto
-    if (info.password().equals(info.passwordConfirmation()))
+    if (!info.password().equals(info.passwordConfirmation()))
       throw new RuntimeException("Passwords aren't the same"); // status 406 0 422?
 
     // Seteo de password y cambio de estado ================
@@ -126,8 +126,6 @@ public class InvitationTokenService implements IInvitationTokenService {
     .build());
 
     // debe mandar mail de que se creó contraseña y registrar esto en la base de datos
-
-    return this.login(new ContractorLoginDTO(info.tokenUrl(), info.password()));
   }
 
   @Override
@@ -139,12 +137,11 @@ public class InvitationTokenService implements IInvitationTokenService {
     if (!referredToken.getIsValid())
       throw new RuntimeException("This token has been invalidated"); // debe arrojar 403 Forbidden
 
-    if (encoder.matches(loginInfo.password(), referredToken.getPassword()))
-      throw new RuntimeException("Wrong password"); // status 406
+    if (!encoder.matches(loginInfo.password(), referredToken.getPassword())) 
+      throw new RuntimeException("Wrong password"); // status 403
 
     try {
       ContractorNameDTO relatedContractorName = invitationTokenRepository.getRelatedContractorNameByTokenUrl(loginInfo.tokenUrl());
-      System.out.println(relatedContractorName.toString());
       String contractorFullName = relatedContractorName.firstName() + " " + relatedContractorName.lastName();
 
       AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(referredToken.getContractorEmail(), "", "", Roles.CONTRACTOR);
@@ -156,7 +153,7 @@ public class InvitationTokenService implements IInvitationTokenService {
       SecurityContextHolder.getContext().setAuthentication(newAuth);
 
       String token = jwtService.generateToken(new JwtClaimsDTO(contractorFullName, Roles.CONTRACTOR, JwtTypes.contractorAuth), referredToken.getContractorEmail());
-      return new TokenDTO(token, "");
+      return new TokenDTO(token, contractorFullName);
     } catch (Exception e) {
       // TODO: handle exception
       throw new RuntimeException("Unknown error in authentication: " + e.getMessage());
