@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("api")
+@RequestMapping("/api/v1/onboarding")
 @AllArgsConstructor
 public class OnboardingController {
 
