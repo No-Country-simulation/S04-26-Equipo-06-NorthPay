@@ -18,5 +18,6 @@ public class ContactInformation {
     private String country;
     private String phoneNumber;
     private String address;
+    
 
 }
