@@ -29,10 +29,14 @@ public class Contractor {
     private String firstName;
     @Column(name = "last_name")
     private String lastName;
+    @Column(name = "text_id")
+    private String textId;
     @Embedded
     private ContactInformation contactInformation;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    
-
+   
+     public String getEmail(){
+        return getContactInformation().getEmail();
+     }
 }

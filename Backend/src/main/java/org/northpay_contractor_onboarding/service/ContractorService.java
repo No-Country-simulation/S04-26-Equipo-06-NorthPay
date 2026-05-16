@@ -18,14 +18,14 @@ public class ContractorService implements IContractorService {
     private final ContractorRepository contractorRepository;
 
     @Override
-    public Contractor saveContractor(OnboardingDTO.RequestOnboarding requestOnboarding) {
+    public Contractor saveContractor(OnboardingDTO.RequestOnboarding requestOnboarding , String emialLogeado) {
 
         Contractor contractor = Contractor.builder()
                 .firstName(requestOnboarding.getName())
                 .lastName(requestOnboarding.getLastName())
                 .createdAt(LocalDateTime.now())
                 .contactInformation(ContactInformation.builder()
-                        .email(requestOnboarding.getEmail())
+                        .email(emialLogeado)
                         .phoneNumber(requestOnboarding.getPhoneNumber())
                         .country(requestOnboarding.getCountry())
                         .address(requestOnboarding.getAddress())
