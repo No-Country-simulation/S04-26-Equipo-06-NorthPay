@@ -10,6 +10,7 @@ import org.northpay_contractor_onboarding.dto.jwt.TokenDTO;
 import org.northpay_contractor_onboarding.security.authentication.AuthenticatedUserDetails;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public interface IInvitationTokenService {
@@ -22,8 +23,7 @@ public interface IInvitationTokenService {
    * @return true si el token está expirado
    */
   boolean checkInvitationTokenUrlIsExpired(String tokenUrl);
-
   void useTokenForFirstTime(@Valid InvTokenContractorSignUp data);
-
   TokenDTO login(@Valid ContractorLoginDTO loginInfo);
+  void invalidateToken(@NotBlank String tokenUrl);
 }
