@@ -1,6 +1,12 @@
 package org.northpay_contractor_onboarding.model;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.*;
 import org.northpay_contractor_onboarding.enums.ContractStatus;
 
@@ -31,8 +37,9 @@ public class Contract {
     @Enumerated(EnumType.STRING)
     private ContractStatus status = ContractStatus.PENDING_SIGNATURE ;
 
+
     @OneToOne
-    @JoinColumn(name="onboardingId", nullable = false)
+    @JoinColumn(name = "onboarding_id", nullable = false)
     private Onboarding onboarding;
 
 }
