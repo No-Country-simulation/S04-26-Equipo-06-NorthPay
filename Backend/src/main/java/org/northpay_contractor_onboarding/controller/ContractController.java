@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/contract")
+@RequestMapping("/v1/contract")
 public class ContractController {
 
     @Autowired
