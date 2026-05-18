@@ -35,6 +35,8 @@ public class PaymentMethod {
     //VERIFICATION
     @Column(nullable = false)
     private Boolean isPaymentVerified = false;
+
+    @Column(columnDefinition = "TEXT")
     private String verificationNotes;
 
     @OneToOne
