@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -18,17 +20,18 @@ import java.util.UUID;
 public class Contract {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID contract_id;
 
     private String document_url;
     private Boolean signed;
     private LocalDateTime created_at;
 
-    private UUID onboarding_id;
+    // TODO lo comente para que compile ya mapie las clase que me faltaban en onboarding
+    // private UUID onboarding_id;
 
-    //@OneToOne
-    //@JoinColumn(name="onboarding_id", nullable = false)
-    //private Onboarding onboarding;
+    @OneToOne
+    @JoinColumn(name = "onboarding_id", nullable = false)
+    private Onboarding onboarding;
 
 }

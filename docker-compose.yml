@@ -37,6 +37,8 @@ services:
       - "8080:8080"
     networks:
       - northpay-network
+    volumes:
+      - ./Backend:/app
 
   frontend:
     build:

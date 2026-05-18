@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### UPLOADS FOLDER ###
+
+
 ### STS ###
 .apt_generated
 .classpath
@@ -31,3 +34,6 @@ build/
 
 ### VS Code ###
 .vscode/
+### Environment Variables ###
+.env
+.env.local
