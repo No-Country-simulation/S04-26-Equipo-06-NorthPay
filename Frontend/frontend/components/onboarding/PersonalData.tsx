@@ -1,58 +1,142 @@
 import { OnboardingData } from "../../app/onboarding/types";
 
+type PersonalDataField = "firstName" | "lastName" | "email" | "phone";
+
+type PersonalDataErrors = Partial<Record<PersonalDataField, string>>;
+
 interface Props {
   data: OnboardingData;
   onChange: (field: keyof OnboardingData, value: string) => void;
+  errors: PersonalDataErrors;
+  firstNameError: string;
 }
 
-export default function PersonalData({ data, onChange }: Props) {
+export default function PersonalData({
+  data,
+  onChange,
+  errors,
+  firstNameError,
+}: Props) {
+  const hasError = (field: PersonalDataField) => {
+    return Boolean(errors[field]);
+  };
+
+  const getInputClassName = (field: PersonalDataField) => {
+    return `w-full rounded-2xl border bg-white px-5 py-3.5 text-sm text-slate-900 outline-none transition focus:ring-4 ${
+      hasError(field)
+        ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10"
+        : "border-slate-200 focus:border-sky-500 focus:ring-sky-500/10"
+    }`;
+  };
+
+  const renderError = (field: PersonalDataField) => {
+    if (!errors[field]) {
+      return null;
+    }
+
+    return <p className="text-xs font-medium text-rose-600">{errors[field]}</p>;
+  };
+
   return (
     <div className="space-y-6">
-      <p className="text-sm text-slate-600">Please provide your legal personal information as it appears on your official ID.</p>
-      
+      <p className="text-sm text-slate-600">
+        Please provide your legal personal information as it appears on your
+        official ID.
+      </p>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">First Name</label>
-          <input
-            type="text"
-            value={data.firstName}
-            onChange={(e) => onChange("firstName", e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
-            placeholder="e.g. John"
-          />
+           <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+    First Name
+  </label>
+
+  <input
+    type="text"
+    value={data.firstName}
+    onChange={(e) => onChange("firstName", e.target.value)}
+    className={`w-full rounded-2xl border bg-white px-5 py-3.5 text-sm text-slate-900 outline-none transition focus:ring-4 ${
+      firstNameError
+        ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10"
+        : "border-slate-200 focus:border-sky-500 focus:ring-sky-500/10"
+    }`}
+    placeholder="e.g. John"
+  />
+
+  {firstNameError && (
+    <p className="text-xs font-medium text-rose-600">
+      {firstNameError}
+    </p>
+  )}
         </div>
+
         <div className="space-y-2">
-          <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Last Name</label>
+          <label
+            htmlFor="lastName"
+            className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+          >
+            Last Name
+          </label>
+
           <input
+            id="lastName"
             type="text"
             value={data.lastName}
             onChange={(e) => onChange("lastName", e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
+            className={getInputClassName("lastName")}
             placeholder="e.g. Doe"
+            aria-invalid={hasError("lastName")}
+            aria-describedby={
+              hasError("lastName") ? "lastName-error" : undefined
+            }
           />
+
+          <div id="lastName-error">{renderError("lastName")}</div>
         </div>
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-          <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Email Address</label>
+          <label
+            htmlFor="email"
+            className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+          >
+            Email Address
+          </label>
+
           <input
+            id="email"
             type="email"
             value={data.email}
             onChange={(e) => onChange("email", e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
+            className={getInputClassName("email")}
             placeholder="john.doe@example.com"
+            aria-invalid={hasError("email")}
+            aria-describedby={hasError("email") ? "email-error" : undefined}
           />
+
+          <div id="email-error">{renderError("email")}</div>
         </div>
+
         <div className="space-y-2">
-          <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Phone Number</label>
+          <label
+            htmlFor="phone"
+            className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+          >
+            Phone Number
+          </label>
+
           <input
+            id="phone"
             type="tel"
             value={data.phone}
             onChange={(e) => onChange("phone", e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3.5 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10"
+            className={getInputClassName("phone")}
             placeholder="+1 (555) 000-0000"
+            aria-invalid={hasError("phone")}
+            aria-describedby={hasError("phone") ? "phone-error" : undefined}
           />
+
+          <div id="phone-error">{renderError("phone")}</div>
         </div>
       </div>
     </div>
