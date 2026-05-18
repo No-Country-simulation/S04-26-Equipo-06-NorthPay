@@ -2,7 +2,7 @@ package org.northpay_contractor_onboarding.service;
 
 import org.northpay_contractor_onboarding.dto.PaymentMethodRequestDTO;
 import org.northpay_contractor_onboarding.dto.PaymentMethodResponseDTO;
-import org.northpay_contractor_onboarding.dto.PaymenMethodVerificationDTO;
+import org.northpay_contractor_onboarding.dto.PaymentMethodVerificationDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,9 +19,9 @@ public interface IPaymentMethodService {
     PaymentMethodResponseDTO updatePaymentMethod(PaymentMethodRequestDTO paymentMethod
     , UUID paymentMethodId);
     String verifyPaymentMethod(UUID paymentMethodId,
-                               PaymenMethodVerificationDTO verificationDTO);
+                               PaymentMethodVerificationDTO verificationDTO);
     String rejectPaymentMethod(UUID paymentMethodId,
-                                PaymenMethodVerificationDTO verificationDTO);
+                                PaymentMethodVerificationDTO verificationDTO);
     void deletePaymentMethod(String id);
 
 }

@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PaymenMethodVerificationDTO {
+public class PaymentMethodVerificationDTO {
 
     private Boolean isVerified;
     private String verificationNotes;

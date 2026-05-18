@@ -1,8 +1,8 @@
 package org.northpay_contractor_onboarding.service;
 
-import org.northpay_contractor_onboarding.dto.PaymenMethodVerificationDTO;
 import org.northpay_contractor_onboarding.dto.PaymentMethodRequestDTO;
 import org.northpay_contractor_onboarding.dto.PaymentMethodResponseDTO;
+import org.northpay_contractor_onboarding.dto.PaymentMethodVerificationDTO;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.model.PaymentMethod;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.northpay_contractor_onboarding.repository.PaymentMethodRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,6 +68,7 @@ public class PaymentMethodService implements IPaymentMethodService{
                 .walletEmail(paymentMethod.getWalletEmail())
                 .network(paymentMethod.getNetwork())
                 .walletAddress(paymentMethod.getWalletAddress())
+                .created_at(LocalDateTime.now())
                 .onboarding(onboarding)
                 .build();
 
@@ -83,11 +85,29 @@ public class PaymentMethodService implements IPaymentMethodService{
                 ()-> new IllegalArgumentException("Payment Method not found")
         );
 
-        paymentMethodEntity.setPaymentMethodType(paymentMethod.getPaymentMethodType());
-        paymentMethodEntity.setPlatform(paymentMethod.getPlatform());
-        paymentMethodEntity.setWalletEmail(paymentMethod.getWalletEmail());
-        paymentMethodEntity.setNetwork(paymentMethod.getNetwork());
-        paymentMethodEntity.setWalletAddress(paymentMethod.getWalletAddress());
+        if(Boolean.TRUE.equals(paymentMethodEntity.getIsPaymentVerified())){
+            throw new IllegalStateException("Payment Method is already verified");
+        }
+
+        if(paymentMethod.getPlatform() != null && !paymentMethod.getPlatform().isBlank()){
+            paymentMethodEntity.setPlatform(paymentMethod.getPlatform());
+        }
+
+        if(paymentMethod.getWalletEmail() != null && !paymentMethod.getWalletEmail().isBlank()){
+            paymentMethodEntity.setWalletEmail(
+                    paymentMethod.getWalletEmail());
+        }
+
+        if(paymentMethod.getNetwork() != null && !paymentMethod.getNetwork().isBlank()){
+            paymentMethodEntity.setNetwork(
+                    paymentMethod.getNetwork());
+        }
+
+        if(paymentMethod.getWalletAddress() != null && !paymentMethod.getWalletAddress().isBlank()){
+            paymentMethodEntity.setWalletAddress(
+                    paymentMethod.getWalletAddress());
+        }
+
         PaymentMethod paymentMethodUpdated = paymentMethodRepository.save(paymentMethodEntity);
 
         return mapToDTO(paymentMethodUpdated);
@@ -96,7 +116,7 @@ public class PaymentMethodService implements IPaymentMethodService{
     //VERIFY PAYMENT METHOD
     @Override
     public String verifyPaymentMethod(UUID paymentMethodId,
-    PaymenMethodVerificationDTO dto){
+    PaymentMethodVerificationDTO dto){
 
         PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId).orElseThrow(
                 ()-> new IllegalArgumentException("Payment Method not found")
@@ -113,7 +133,7 @@ public class PaymentMethodService implements IPaymentMethodService{
     //REJECT PAYMENT METHOD
     @Override
     public String rejectPaymentMethod(UUID paymentMethodId,
-                                      PaymenMethodVerificationDTO dto){
+                                      PaymentMethodVerificationDTO dto){
         PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId).orElseThrow(
                 ()-> new IllegalArgumentException("Payment Method not found")
         );
@@ -142,6 +162,7 @@ public class PaymentMethodService implements IPaymentMethodService{
         dto.setWallet_address(paymentMethod.getWalletAddress());
         dto.setIs_payment_verified(paymentMethod.getIsPaymentVerified());
         dto.setVerification_notes(paymentMethod.getVerificationNotes());
+        dto.setCreated_at(paymentMethod.getCreated_at());
         dto.setOnboarding_id(paymentMethod.getOnboarding().getId().toString());
 
         return dto;
