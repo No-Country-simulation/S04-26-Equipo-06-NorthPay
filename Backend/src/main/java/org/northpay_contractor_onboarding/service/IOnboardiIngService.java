@@ -11,4 +11,6 @@ public interface IOnboardiIngService {
   OnboardingDTO savePersonalData(UUID onboardingId, OnboardingDTO.RequestOnboarding requestOnboarding);
   Onboarding create();
   OnboardingDTO finalizeOnboarding(UUID id);
+  OnboardingDTO update(UUID id , Onboarding onboarding);
+  OnboardingDTO getOnboarding(UUID id);
 }
