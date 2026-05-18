@@ -19,15 +19,15 @@ import lombok.Setter;
 public class OnboardingDTO {
 
     private UUID id;
-    private int currentStep;
+    private Integer currentStep;
     private OnboardingStatus status;
-    private PaymentMethodTypes paymentMethodTypes;
+   
 
     public OnboardingDTO(Onboarding onboarding) {
         this.id = onboarding.getId();
         this.currentStep = onboarding.getCurrentStep();
         this.status = onboarding.getStatus();
-        this.paymentMethodTypes = onboarding.getPaymentMethod().getPaymentMethodType();
+       
     }
 
     @Getter
