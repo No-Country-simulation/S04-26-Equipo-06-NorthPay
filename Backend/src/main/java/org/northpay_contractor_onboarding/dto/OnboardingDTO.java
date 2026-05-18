@@ -19,14 +19,18 @@ import lombok.Setter;
 public class OnboardingDTO {
 
     private UUID id;
-    private int currentStep;
+    private Integer currentStep;
     private OnboardingStatus status;
+    private String completeName;
+    private String email;
     private PaymentMethodTypes paymentMethodTypes;
+   
 
     public OnboardingDTO(Onboarding onboarding) {
-        this.id = onboarding.getId();
         this.currentStep = onboarding.getCurrentStep();
         this.status = onboarding.getStatus();
+        this.completeName = onboarding.getContractor().getFirstName() + onboarding.getContractor().getLastName();
+        this.email = onboarding.getContractor().getEmail();
         this.paymentMethodTypes = onboarding.getPaymentMethod().getPaymentMethodType();
     }
 
@@ -51,9 +55,6 @@ public class OnboardingDTO {
         @NotBlank(message = "La dirección es obligatoria")
         @Size(max = 255)
         private String address;
-
     }
-
-   
-
 }
+
