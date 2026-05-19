@@ -19,7 +19,7 @@ import jakarta.persistence.JoinColumn;
 
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,7 +44,7 @@ public class Onboarding {
   @Enumerated(EnumType.STRING)
   private OnboardingStatus status;
   @Column(name = "current_step")
-  private int currentStep;
+  private Integer currentStep;
   @Column(name = "created_at")
   private LocalDateTime createdAt;
   @Column(name = "update_at")

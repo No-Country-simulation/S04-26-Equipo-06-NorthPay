@@ -33,7 +33,10 @@ public class PaymentMethod {
     private LocalDateTime created_at;
 
     //VERIFICATION
-    private Boolean isPaymentVerified;
+    @Column(nullable = false)
+    private Boolean isPaymentVerified = false;
+
+    @Column(columnDefinition = "TEXT")
     private String verificationNotes;
 
     @OneToOne
