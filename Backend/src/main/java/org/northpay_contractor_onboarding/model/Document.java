@@ -1,11 +1,10 @@
 package org.northpay_contractor_onboarding.model;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
+import org.northpay_contractor_onboarding.enums.DocumentStatus;
+import org.northpay_contractor_onboarding.model.Onboarding;
 
 import java.util.UUID;
 
@@ -21,13 +20,24 @@ public class Document {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID document_id;
 
-    private String type;
-    private String url;
-    private String status;
-    private UUID onboarding_id;
+    private String fileType;
+    private String fileSize;
+    private String fileExtension;
+    private String fileUrl;
+    @Column(unique = true)
+    private String fileHash;
+    private Integer version;
+    private Boolean activeVersion;
 
-    //@OneToOne
-    //@JoinColumn(name="onboarding_id", nullable = false)
-    //private Onboarding onboarding;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DocumentStatus status = DocumentStatus.PENDING_REVIEW;
+
+    @OneToOne
+    @JoinColumn(name="onboarding_id",
+            referencedColumnName = "id"
+            , nullable = false)
+    private Onboarding onboarding;
 
 }

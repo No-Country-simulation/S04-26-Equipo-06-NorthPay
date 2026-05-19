@@ -52,6 +52,7 @@ public class JwtService {
     Map<String, Object> extraClaims = new HashMap<>();
     extraClaims.put("name", claims.name());
     extraClaims.put("role", claims.role());
+    extraClaims.put("type", claims.type());
 
     long issuedAtInMs = System.currentTimeMillis();
 

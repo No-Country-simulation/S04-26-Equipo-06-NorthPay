@@ -33,7 +33,7 @@ public class OnboardingHistory {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contractor_id")
+    @JoinColumn(name = "onboarding_id")
     private Onboarding onboarding;
     @Column(name = "old_status")
     @Enumerated(EnumType.STRING)
@@ -47,5 +47,8 @@ public class OnboardingHistory {
     private String reason;
     @Column(name = "changed_at")
     private LocalDateTime changedAt;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "operator_id")
+    private Operators Operators;
 
 }

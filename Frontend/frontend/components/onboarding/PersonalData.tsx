@@ -8,14 +8,12 @@ interface Props {
   data: OnboardingData;
   onChange: (field: keyof OnboardingData, value: string) => void;
   errors: PersonalDataErrors;
-  firstNameError: string;
 }
 
 export default function PersonalData({
   data,
   onChange,
   errors,
-  firstNameError,
 }: Props) {
   const hasError = (field: PersonalDataField) => {
     return Boolean(errors[field]);
@@ -51,22 +49,17 @@ export default function PersonalData({
   </label>
 
   <input
+    id="firstName"
     type="text"
     value={data.firstName}
     onChange={(e) => onChange("firstName", e.target.value)}
-    className={`w-full rounded-2xl border bg-white px-5 py-3.5 text-sm text-slate-900 outline-none transition focus:ring-4 ${
-      firstNameError
-        ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/10"
-        : "border-slate-200 focus:border-sky-500 focus:ring-sky-500/10"
-    }`}
+    className={getInputClassName("firstName")}
     placeholder="e.g. John"
+    aria-invalid={hasError("firstName")}
+    aria-describedby={hasError("firstName") ? "firstName-error" : undefined}
   />
 
-  {firstNameError && (
-    <p className="text-xs font-medium text-rose-600">
-      {firstNameError}
-    </p>
-  )}
+  <div id="firstName-error">{renderError("firstName")}</div>
         </div>
 
         <div className="space-y-2">

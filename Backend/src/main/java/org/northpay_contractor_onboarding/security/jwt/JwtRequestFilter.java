@@ -36,7 +36,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     try {
       String tokenSubject_email = jwtService.getClaim(token, claims -> claims.getSubject());
-      Roles tokenRole = Roles.OPERATOR;
+      Roles tokenRole = Roles.valueOf(jwtService.getClaim(token, claims -> claims.get("role", String.class)));
       if (tokenSubject_email == null) {
         filterChain.doFilter(request, response);
         return;
@@ -57,12 +57,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(tokenSubject_email, token_userName, "", tokenRole);
       PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
         newAuthData,
-        null
+        null,
+        newAuthData.getAuthorities()
       );
       newAuth.setAuthenticated(true);
       newAuth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
       SecurityContextHolder.getContext().setAuthentication(newAuth);
+      /* Authentication newAuthentication = SecurityContextHolder.getContext().getAuthentication();
+      System.out.println(newAuthentication.getAuthorities());
+      System.out.println(newAuthentication.getName()); */
     } catch (Exception e) {
       // TODO: handle exceptions, separar por excepciones arrojadas del service y de las que no
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -73,9 +77,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
       {
         "status": 401,
         "error": "Unauthorized",
-        "message": "Invalid token"
+        "message": "Invalid token",
+        "reason": "%s"
       }
-      """);
+      """.formatted(e.getMessage()));
       System.out.println("Fallo al validar token" + e.getMessage());
 
       return;

@@ -52,9 +52,8 @@ export default function OnboardingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
   const [personalDataErrors, setPersonalDataErrors] = useState<PersonalDataErrors>({});
-  const [firstNameError, setFirstNameError] = useState("");
-  
-  
+
+
 
   useEffect(() => {
     const saved = sessionStorage.getItem("onboarding_progress");
@@ -136,82 +135,75 @@ export default function OnboardingPage() {
 
 
   const validatePersonalDataField = (
-  field: PersonalDataField,
-  value: string
-): string => {
-  const trimmedValue = value.trim();
+    field: PersonalDataField,
+    value: string
+  ): string => {
+    const trimmedValue = value.trim();
 
-  if (!trimmedValue) {
-    return "This field is required.";
-  }
-
-  if (field === "firstName" || field === "lastName") {
-    const nameRegex = /^[A-Za-z\s'-]+$/;
-
-    if (trimmedValue.length < 2) {
-      return "Must be at least 2 characters.";
+    if (!trimmedValue) {
+      return "This field is required.";
     }
 
-    if (!nameRegex.test(trimmedValue)) {
-      return "Only letters, spaces, apostrophes, and hyphens are allowed.";
-    }
-  }
+    if (field === "firstName" || field === "lastName") {
+      const nameRegex = /^[A-Za-z\s'-]+$/;
 
-  if (field === "email") {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (trimmedValue.length < 2) {
+        return "Must be at least 2 characters.";
+      }
 
-    if (!emailRegex.test(trimmedValue)) {
-      return "Enter a valid email address.";
-    }
-  }
-
-  if (field === "phone") {
-    const phoneRegex = /^[0-9+() -]+$/;
-    const digitsOnly = trimmedValue.replace(/\D/g, "");
-
-    if (!phoneRegex.test(trimmedValue)) {
-      return "Only numbers, spaces, +, parentheses, and hyphens are allowed.";
+      if (!nameRegex.test(trimmedValue)) {
+        return "Only letters, spaces, apostrophes, and hyphens are allowed.";
+      }
     }
 
-    if (digitsOnly.length < 8) {
-      return "Phone number must include at least 8 digits.";
+    if (field === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(trimmedValue)) {
+        return "Enter a valid email address.";
+      }
     }
-  }
 
-  return "";
-};
+    if (field === "phone") {
+      const phoneRegex = /^[0-9+() -]+$/;
+      const digitsOnly = trimmedValue.replace(/\D/g, "");
 
-const validateFirstName = (value: string) => {
-  const trimmedValue = value.trim();
-  const nameRegex = /^[A-Za-z\s'-]+$/;
+      if (!phoneRegex.test(trimmedValue)) {
+        return "Only numbers, spaces, +, parentheses, and hyphens are allowed.";
+      }
 
-  if (!trimmedValue) {
-    return "First name is required.";
-  }
+      if (digitsOnly.length < 8) {
+        return "Phone number must include at least 8 digits.";
+      }
+    }
 
-  if (trimmedValue.length < 2) {
-    return "First name must be at least 2 characters.";
-  }
+    return "";
+  };
 
-  if (!nameRegex.test(trimmedValue)) {
-    return "Only letters, spaces, apostrophes, and hyphens are allowed.";
-  }
+  const handleChange = (field: keyof OnboardingData, value: any) => {
+    setData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
-  return "";
-};
+    // Real-time validation for all personal data fields
+    if (isPersonalDataField(field)) {
+      const errorMsg = validatePersonalDataField(field, value);
+      setPersonalDataErrors((prev) => {
+        const newErrors = { ...prev };
+        if (errorMsg) {
+          newErrors[field] = errorMsg;
+        } else {
+          delete newErrors[field];
+        }
+        return newErrors;
+      });
+    }
 
-const handleChange = (field: keyof OnboardingData, value: any) => {
-  setData((prev) => ({
-    ...prev,
-    [field]: value,
-  }));
+    if (error) setError("");
+  };
 
-  if (field === "firstName") {
-    setFirstNameError(validateFirstName(value));
-  }
-};
 
-  
 
   const submitPersonalData = async () => {
     const response = await fetch("/api/onboarding/personal-data", {
@@ -253,12 +245,12 @@ const handleChange = (field: keyof OnboardingData, value: any) => {
       const errors = validatePersonalData(data);
       setPersonalDataErrors(errors);
 
-     if (Object.keys(errors).length > 0) {
-  return "Please review the highlighted fields.";
-}
+      if (Object.keys(errors).length > 0) {
+        return "Please review the highlighted fields.";
+      }
     }
 
-     
+
 
     if (stepIndex === 1) {
       if (!data.documentName) {
@@ -277,7 +269,6 @@ const handleChange = (field: keyof OnboardingData, value: any) => {
         return "PENDING_VERIFICATION";
       }
     }
-
     return "";
   };
 
@@ -375,20 +366,18 @@ const handleChange = (field: keyof OnboardingData, value: any) => {
                     type="button"
                     onClick={() => isClickable && setStepIndex(index)}
                     disabled={!isClickable}
-                    className={`flex w-full items-center gap-3 text-left transition ${
-                      isClickable
+                    className={`flex w-full items-center gap-3 text-left transition ${isClickable
                         ? "cursor-pointer hover:opacity-80"
                         : "cursor-not-allowed opacity-50"
-                    }`}
+                      }`}
                   >
                     <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                        index <= stepIndex
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${index <= stepIndex
                           ? "bg-sky-600 text-white"
                           : isClickable
                             ? "bg-sky-100 text-sky-600"
                             : "border border-slate-300 text-slate-500"
-                      }`}
+                        }`}
                     >
                       {index + 1}
                     </span>
@@ -441,87 +430,91 @@ const handleChange = (field: keyof OnboardingData, value: any) => {
                       href="/"
                       className="rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
                     >
-                      Go back home
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <form className="space-y-8">  
-                {stepIndex === 0 && (
-                  <PersonalData
-                    data={data}
-                    onChange={handleChange}
-                    errors={personalDataErrors}
-                    firstNameError={firstNameError}
-                  />
-                )}
-
-                  {stepIndex === 1 && (
-                    <DocumentUpload data={data} onChange={handleChange} />
-                  )}
-
-                  {stepIndex === 2 && (
-                    <ContractSigning data={data} onChange={handleChange} />
-                  )}
-
-                  {stepIndex === 3 && (
-                    <PaymentMethod
-                      data={data}
-                      onChange={handleChange}
-                      onPaymentDetailChange={handlePaymentDetailsChange}
-                    />
-                  )}
-
-                  {stepIndex === 4 && (
-                    <IdentityVerification data={data} onChange={handleChange} />
-                  )}
-
-                  {error && (
-                    <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                      {error}
-                    </p>
-                  )}
-
-                  <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-                    <button
-                      type="button"
-                      onClick={handlePrevious}
-                      disabled={stepIndex === 0}
-                      className="rounded-3xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-50 hover:bg-slate-100"
-                    >
-                      Back
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleNext}
-                      disabled={
-                        (stepIndex === 3 &&
-                          (!data.paymentMethod || !data.isPaymentVerified)) ||
-                        isProcessing
-                      }
-                      className="rounded-3xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
-                    >
-                      {isProcessing ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Saving...
-                        </>
-                      ) : stepIndex === steps.length - 1 ? (
-                        "Submit application"
-                      ) : stepIndex === 0 ? (
-                        "Continue"
+                            Go back home
+                          </Link>
+                        </div>
+                      </div>
                       ) : (
-                        "Next step"
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
+                      <form className="space-y-8">
+                        {stepIndex === 0 && (
+                          <PersonalData
+                            data={data}
+                            onChange={handleChange}
+                            errors={personalDataErrors}
+                          />
+                        )}
+
+                        {stepIndex === 1 && (
+                          <DocumentUpload data={data} onChange={handleChange} />
+                        )}
+
+                        {stepIndex === 2 && (
+                          <ContractSigning data={data} onChange={handleChange} />
+                        )}
+
+                        {stepIndex === 3 && (
+                          <PaymentMethod
+                            data={data}
+                            onChange={handleChange}
+                            onPaymentDetailChange={handlePaymentDetailsChange}
+                          />
+                        )}
+
+  {
+    stepIndex === 4 && (
+      <IdentityVerification data={data} onChange={handleChange} />
+    )
+  }
+
+  {
+    error && (
+      <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        {error}
+      </p>
+    )
+  }
+
+  <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+    <button
+      type="button"
+      onClick={handlePrevious}
+      disabled={stepIndex === 0}
+      className="rounded-3xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition disabled:cursor-not-allowed disabled:opacity-50 hover:bg-slate-100"
+    >
+      Back
+    </button>
+
+    <button
+      type="button"
+      onClick={handleNext}
+      disabled={
+        (stepIndex === 3 &&
+          (!data.paymentMethod || !data.isPaymentVerified)) ||
+        isProcessing
+      }
+      className="rounded-3xl bg-sky-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+    >
+      {isProcessing ? (
+        <>
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          Saving...
+            </>
+          ) : stepIndex === steps.length - 1 ? (
+            "Submit application"
+          ) : stepIndex === 0 ? (
+            "Continue"
+          ) : (
+            "Next step"
+          )}
+        </button>
+  </div>
+                </form >
+              )
+}
+            </div >
+          </section >
+        </div >
+      </div >
+    </div >
   );
 }

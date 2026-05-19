@@ -3,6 +3,7 @@ package org.northpay_contractor_onboarding.security.authentication;
 import org.northpay_contractor_onboarding.dto.authentication.LoginDTO;
 import org.northpay_contractor_onboarding.dto.jwt.JwtClaimsDTO;
 import org.northpay_contractor_onboarding.dto.jwt.TokenDTO;
+import org.northpay_contractor_onboarding.enums.JwtTypes;
 import org.northpay_contractor_onboarding.enums.Roles;
 import org.northpay_contractor_onboarding.model.Operators;
 import org.northpay_contractor_onboarding.repository.OperatorRepository;
@@ -36,7 +37,7 @@ public class AuthenticationService {
       () -> new RuntimeException("cuenta nombre de usuario")
     );
 
-    String token = jwtService.generateToken(new JwtClaimsDTO(operatorToLog.getName(), Roles.OPERATOR), email);
+    String token = jwtService.generateToken(new JwtClaimsDTO(operatorToLog.getName(), Roles.OPERATOR, JwtTypes.operatorAuth), email);
 
     // En este paso es donde se guarda la autenticación en el contexto de seguridad, mediante al authenticationManager de Spring Security
     authenticationManager.authenticate(
@@ -57,7 +58,7 @@ public class AuthenticationService {
 
     SecurityContextHolder.clearContext();
 
-    String logoutToken = jwtService.generateToken(new JwtClaimsDTO(null, null), null);
+    String logoutToken = jwtService.generateToken(new JwtClaimsDTO(null, null, null), null);
     return new TokenDTO(logoutToken, null);
   }
 }

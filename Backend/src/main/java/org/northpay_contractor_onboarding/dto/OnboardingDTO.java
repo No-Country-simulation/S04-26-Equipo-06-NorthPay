@@ -4,10 +4,13 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.northpay_contractor_onboarding.enums.OnboardingStatus;
+import org.northpay_contractor_onboarding.enums.PaymentMethodTypes;
+import org.northpay_contractor_onboarding.model.Onboarding;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,9 +19,16 @@ import lombok.Setter;
 public class OnboardingDTO {
 
     private UUID id;
-    private int currentStep;
+    private Integer currentStep;
     private OnboardingStatus status;
-    
+   
+
+    public OnboardingDTO(Onboarding onboarding) {
+        this.id = onboarding.getId();
+        this.currentStep = onboarding.getCurrentStep();
+        this.status = onboarding.getStatus();
+       
+    }
 
     @Getter
     @Setter
@@ -43,4 +53,7 @@ public class OnboardingDTO {
         private String address;
 
     }
+
+   
+
 }
