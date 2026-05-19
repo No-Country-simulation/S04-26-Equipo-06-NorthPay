@@ -10,11 +10,10 @@ import org.northpay_contractor_onboarding.exception.NotFoundException;
 
 import org.northpay_contractor_onboarding.model.Contractor;
 import org.northpay_contractor_onboarding.model.Onboarding;
-import org.northpay_contractor_onboarding.repository.InvitationTokenRepository;
-import org.northpay_contractor_onboarding.repository.OnboardingRepository;
-import org.northpay_contractor_onboarding.repository.PaymentMethodRepository;
 
-import org.springframework.security.access.AccessDeniedException;
+
+import org.northpay_contractor_onboarding.repository.OnboardingRepository;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +25,9 @@ import lombok.AllArgsConstructor;
 public class OnboardingService implements IOnboardiIngService {
 
         private final OnboardingRepository onboardingRepository;
-        private final IOnboardingHistoryService onboardingHistoryService;
+
         private final IContractorService ioContractorService;
-        private final PaymentMethodRepository paymentMethodRepository;
-        private final InvitationTokenRepository invitationTokenRepository;
+        private final StateMachineService stateMachineService;
 
         @Override
         @Transactional
@@ -41,27 +39,21 @@ public class OnboardingService implements IOnboardiIngService {
 
                 var onboarding = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("Onboarding not found"));
+                                
+                 //TODO lo comento hasta que podamos hacer pruebas con el token de invitacion
+                //if (!onboarding.getContractor().getEmail().contains(emailLogueado)) {
+                  //      throw new org.northpay_contractor_onboarding.exception.AccessDeniedException("No tenés permiso para editar este onboarding.", HttpStatus.FORBIDDEN);
+                //}
 
-                if (!onboarding.getContractor().getEmail().contains(emailLogueado)) {
-                        throw new AccessDeniedException("No tenés permiso para editar este onboarding.");
-                }
+                Contractor dbContractor = ioContractorService.saveContractor(requestOnboarding, requestOnboarding.getEmail());
 
-                if (!isReadyForPersonalData(onboarding)) {
-                        throw new IllegalStateException(
-                                        "Onboarding is not in the correct status to update personal data");
-                }
-
-                Contractor dbContractor = ioContractorService.saveContractor(requestOnboarding, emailLogueado);
-
-                OnboardingStatus previousStatus = onboarding.getStatus();
                 onboarding.setContractor(dbContractor);
-                onboarding.setStatus(OnboardingStatus.PERSONAL_DATA_COMPLETED);
-                onboarding.setCurrentStep(2);
                 onboarding.setUpdatedAt(LocalDateTime.now());
 
+               stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "USER");
+               onboarding.setCurrentStep(2);
+               
                 var dbOnboarding = onboardingRepository.save(onboarding);
-
-                onboardingHistoryService.saveOnboardingHistory(dbOnboarding, previousStatus);
 
                 OnboardingDTO onboardingDTO = new OnboardingDTO(dbOnboarding);
 
@@ -76,7 +68,6 @@ public class OnboardingService implements IOnboardiIngService {
                 Onboarding onboarding = Onboarding.builder().createdAt(LocalDateTime.now())
                                 .currentStep(1).status(OnboardingStatus.INVITED).build();
 
-
                 var dbOnboarding = onboardingRepository.save(onboarding);
 
                 return dbOnboarding;
@@ -89,27 +80,39 @@ public class OnboardingService implements IOnboardiIngService {
                 var onboarding = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("Onboarding not found"));
 
-                if (!isReadyForComplete(onboarding)) {
-                        throw new IllegalStateException(
-                                        "Onboarding is not in the correct status");
+                if (onboarding.getStatus() == OnboardingStatus.IDENTITY_VERIFICATION_COMPLETED) {
+                        stateMachineService.transitionTo(onboarding, OnboardingStatus.PENDING_VERIFICATION, "USER");
+                        onboarding.setCurrentStep(6);
                 }
-
-                onboarding.setStatus(OnboardingStatus.PENDING_VERIFICATION);
-                onboarding.setCreatedAt(LocalDateTime.now());
-                onboarding.setCurrentStep(5);
 
                 var dbOnboarding = onboardingRepository.save(onboarding);
 
                 return new OnboardingDTO(dbOnboarding);
         }
 
- 
-        private boolean isReadyForPersonalData(Onboarding onboarding) {
-                return onboarding.getStatus() == OnboardingStatus.INVITED;
+        @Override
+        @Transactional
+        public OnboardingDTO update(UUID id, Onboarding responseOnboarding) {
+
+                var onboarding = onboardingRepository.findById(id).orElseThrow(
+                                () -> new NotFoundException("Onboarding not found"));
+
+                          onboarding.setStatus(responseOnboarding.getStatus());
+
+                 var dbOnboardin = onboardingRepository.save(onboarding);
+
+                return new OnboardingDTO(dbOnboardin );
         }
 
-        private boolean isReadyForComplete(Onboarding onboarding) {
-                return onboarding.getStatus() == OnboardingStatus.PENDING_VERIFICATION;
+        @Override
+        @Transactional(readOnly = true)
+        public OnboardingDTO getOnboarding(UUID id) {
+                
+                var dbOnboarding = onboardingRepository.findById(id).orElseThrow(
+                        () -> new NotFoundException("no se encontro el onboarding")
+                );
+
+                return new OnboardingDTO(dbOnboarding);
         }
 
 }

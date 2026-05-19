@@ -1,5 +1,6 @@
 package org.northpay_contractor_onboarding.model;
 
+import jakarta.persistence.*;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -7,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import lombok.*;
+import org.northpay_contractor_onboarding.enums.ContractStatus;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,12 +25,18 @@ public class Contract {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID contract_id;
 
-    private String document_url;
-    private Boolean signed;
-    private LocalDateTime created_at;
+    @Column(columnDefinition = "TEXT")
+    private String content;
 
-    // TODO lo comente para que compile ya mapie las clase que me faltaban en onboarding
-    // private UUID onboarding_id;
+    private String signedBy;
+    private Boolean signed;
+    private String contractHash;
+    private String signatureReference;
+    private LocalDateTime signedAt;
+    private LocalDateTime created_at;
+    @Enumerated(EnumType.STRING)
+    private ContractStatus status = ContractStatus.PENDING_SIGNATURE ;
+
 
     @OneToOne
     @JoinColumn(name = "onboarding_id", nullable = false)

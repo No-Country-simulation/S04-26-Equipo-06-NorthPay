@@ -1,5 +1,6 @@
 package org.northpay_contractor_onboarding.exception;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +11,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.northpay_contractor_onboarding.dto.ErrorResponse;
+
+
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -21,6 +25,18 @@ import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(ApiError.class)
+    public ResponseEntity<ErrorResponse> handleCustomApiError(ApiError ex) {
+
+        ErrorResponse errorBody = new ErrorResponse(
+                ex.getMessage(),
+                ex.getStatus().value(),
+                LocalDateTime.now());
+
+        return new ResponseEntity<>(errorBody, ex.getStatus());
+    }
+
+
     /*
      * =========================
      * 400 - BAD REQUEST

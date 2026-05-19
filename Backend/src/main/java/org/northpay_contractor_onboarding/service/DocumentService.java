@@ -33,19 +33,37 @@ public class DocumentService implements IDocumentService{
     //GET ALL DOCUMENTS
     @Override
     public List<DocumentResponseDTO> getAllDocuments(){
-        return null;
+
+        List<Document> documents = documentRepository.findAll();
+        List<DocumentResponseDTO> documentResponseDTOS = documents.stream()
+                .map(this::mapDocumentToDTO)
+                .toList();
+
+        return documentResponseDTOS;
     }
 
     //GET DOCUMENT BY ID
     @Override
     public DocumentResponseDTO getDocumentById(String id){
-        return null;
+
+        Document document = documentRepository.findById(UUID.fromString(id)).orElseThrow(
+                () -> new IllegalArgumentException("Document not found")
+        );
+
+        DocumentResponseDTO dto = mapDocumentToDTO(document);
+
+        return dto;
     }
 
     //GET DOCUMENT BY ONBOARDING ID
     @Override
-    public List<DocumentResponseDTO> getDocumentsByOnboardingId(UUID onboardingId){
-        return null;
+    public DocumentResponseDTO getDocumentByOnboardingId(UUID onboardingId){
+
+        Document document = documentRepository.findByOnboardingId(onboardingId);
+
+        DocumentResponseDTO dto = mapDocumentToDTO(document);
+
+        return dto;
     }
 
     //UPLOAD DOCUMENT
@@ -103,7 +121,6 @@ public class DocumentService implements IDocumentService{
     private void validateFile(MultipartFile file){
 
         List<String> allowedExtensions = List.of(
-                "application/pdf",
                 "image/jpg",
                 "image/jpeg",
                 "image/png");
