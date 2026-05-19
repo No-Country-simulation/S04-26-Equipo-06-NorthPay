@@ -254,7 +254,7 @@ export default function OnboardingPage() {
 
     if (stepIndex === 1) {
       if (!data.documentName) {
-        return "Please upload at least one document.";
+        return "Please upload your National ID or Passport.";
       }
     }
 
