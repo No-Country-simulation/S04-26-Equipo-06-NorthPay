@@ -10,11 +10,7 @@ interface Props {
   errors: PersonalDataErrors;
 }
 
-export default function PersonalData({
-  data,
-  onChange,
-  errors,
-}: Props) {
+export default function PersonalData({ data, onChange, errors }: Props) {
   const hasError = (field: PersonalDataField) => {
     return Boolean(errors[field]);
   };
@@ -44,22 +40,24 @@ export default function PersonalData({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-           <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-    First Name
-  </label>
+          <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            First Name
+          </label>
 
-  <input
-    id="firstName"
-    type="text"
-    value={data.firstName}
-    onChange={(e) => onChange("firstName", e.target.value)}
-    className={getInputClassName("firstName")}
-    placeholder="e.g. John"
-    aria-invalid={hasError("firstName")}
-    aria-describedby={hasError("firstName") ? "firstName-error" : undefined}
-  />
+          <input
+            id="firstName"
+            type="text"
+            value={data.firstName}
+            onChange={(e) => onChange("firstName", e.target.value)}
+            className={getInputClassName("firstName")}
+            placeholder="e.g. John"
+            aria-invalid={hasError("firstName")}
+            aria-describedby={
+              hasError("firstName") ? "firstName-error" : undefined
+            }
+          />
 
-  <div id="firstName-error">{renderError("firstName")}</div>
+          <div id="firstName-error">{renderError("firstName")}</div>
         </div>
 
         <div className="space-y-2">

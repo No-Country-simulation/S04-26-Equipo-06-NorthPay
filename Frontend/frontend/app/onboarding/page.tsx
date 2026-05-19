@@ -204,7 +204,6 @@ export default function OnboardingPage() {
   };
 
 
-
   const submitPersonalData = async () => {
     const response = await fetch("/api/onboarding/personal-data", {
       method: "POST",
