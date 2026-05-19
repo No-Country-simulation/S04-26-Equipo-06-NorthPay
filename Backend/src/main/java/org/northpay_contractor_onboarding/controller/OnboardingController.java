@@ -1,10 +1,14 @@
 package org.northpay_contractor_onboarding.controller;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.OnboardingDTO;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.service.IOnboardiIngService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -26,7 +31,7 @@ public class OnboardingController {
 
     private IOnboardiIngService onboardingService;
 
-    @PutMapping("{id}/dataPersonal")
+    @PutMapping("/{id}/dataPersonal")
     public ResponseEntity<OnboardingDTO> saveDatePersonal(
             @Valid @RequestBody OnboardingDTO.RequestOnboarding requestOnboarding,
             @PathVariable UUID id) {
@@ -36,7 +41,7 @@ public class OnboardingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(onboarding);
 
     }
-    @PatchMapping("{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<OnboardingDTO> update(@PathVariable UUID id , @RequestBody Onboarding responseOnboardig){
               
         var onboardingDTO = onboardingService.update(id , responseOnboardig);
@@ -53,7 +58,7 @@ public class OnboardingController {
 
     }
 
-    @PostMapping("{id}/complete")
+    @PostMapping("/{id}/complete")
     public ResponseEntity<OnboardingDTO> completeProcess(@PathVariable UUID id) {
 
         OnboardingDTO response = onboardingService.finalizeOnboarding(id);
@@ -67,5 +72,17 @@ public class OnboardingController {
         
         return ResponseEntity.ok(onboarding);
     }
+
+    @GetMapping("")
+    public ResponseEntity<Page<OnboardingDTO>> getAllOnboarding(
+        @PageableDefault(page = 0, size = 5) Pageable pageable)
+        {
+        
+        Page<OnboardingDTO> onboarding = onboardingService.getAll(pageable);
+        
+        return ResponseEntity.ok(onboarding);
+
+    }
+    
 
 }

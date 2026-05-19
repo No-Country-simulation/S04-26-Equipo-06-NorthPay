@@ -20,7 +20,6 @@ public class OnboardingDTO {
 
     private UUID id;
     private Integer currentStep;
-    private Integer currentStep;
     private OnboardingStatus status;
     private String completeName;
     private String email;

@@ -1,6 +1,7 @@
 package org.northpay_contractor_onboarding.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.OnboardingDTO;
@@ -13,7 +14,8 @@ import org.northpay_contractor_onboarding.model.Onboarding;
 
 
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -114,6 +116,19 @@ public class OnboardingService implements IOnboardiIngService {
 
                 return new OnboardingDTO(dbOnboarding);
         }
+
+        @Override
+        @Transactional
+        public Page<OnboardingDTO> getAll(Pageable pageable) {
+                
+                Page<Onboarding> onboardingPage = onboardingRepository.findAll(pageable);
+                
+                Page<OnboardingDTO> onboardingDTOs = onboardingPage.map(
+            onboar -> new OnboardingDTO(onboar)
+                   );
+                return onboardingDTOs;
+        }
+        
 
         
 
