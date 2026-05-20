@@ -44,6 +44,7 @@ services:
     build:
       context: ./Frontend/frontend
       dockerfile: Dockerfile
+      target: deps
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: northpay-frontend
@@ -54,6 +55,14 @@ services:
       - "3000:3000"
     networks:
       - northpay-network
+    volumes:
+      - ./Frontend/frontend:/app  
+      - /app/node_modules  
+      - /app/.next
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    command: npx next dev --turbopack --hostname 0.0.0.0
 
 networks:
   northpay-network:

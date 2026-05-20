@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<GenericExceptionResponseDTO> handleRuntimeExceptions(RuntimeException ex) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new GenericExceptionResponseDTO(ex.getMessage(), ex.getCause().toString(), ex.getStackTrace()));
+                .body(new GenericExceptionResponseDTO(ex.getMessage(), ex.getCause() != null ? ex.getCause().toString() : null, ex.getStackTrace()));
     }
 
     @ExceptionHandler(ApiError.class)

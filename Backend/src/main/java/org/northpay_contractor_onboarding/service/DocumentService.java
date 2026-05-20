@@ -133,10 +133,10 @@ public class DocumentService implements IDocumentService{
             throw new IllegalArgumentException("Invalid file type: " + file.getContentType());
         }
 
-        long maxSize = 5 * 1024 * 1024;
+        long maxSize = 10 * 1024 * 1024;
 
         if(file.getSize() > maxSize){
-            throw new IllegalArgumentException("File size exceeds 5MB");
+            throw new IllegalArgumentException("File size exceeds 10MB");
         }
 
     }
