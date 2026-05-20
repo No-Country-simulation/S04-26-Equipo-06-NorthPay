@@ -4,6 +4,7 @@ import { OnboardingData } from "../../app/onboarding/types";
 interface Props {
   data: OnboardingData;
   onChange: (field: keyof OnboardingData, value: string) => void;
+  onboardingId: string;
 }
 
 interface UploadState {
@@ -15,12 +16,12 @@ interface UploadState {
 
 const REQUIRED_DOC = {
   id: "id_passport",
-  label: "National ID or Passport",
+  label: "National ID Card",
   description:
-    "Please upload a clear scan or photo of both sides of your official identity card or the main page of your passport.",
+    "Please upload a clear scan or photo of both sides of your official identity card",
 };
 
-export default function DocumentUpload({ data, onChange }: Props) {
+export default function DocumentUpload({ data, onChange, onboardingId }: Props) {
   const [upload, setUpload] = useState<UploadState>({
     status: "pending",
     progress: 0,
@@ -95,7 +96,7 @@ export default function DocumentUpload({ data, onChange }: Props) {
           const formData = new FormData();
           formData.append("file", file);
           // ID real temporal para probar el guardado en base de datos
-          formData.append("onboardingId", "207e30f3-5bce-40b0-8c1a-9233b653f7c0"); 
+          formData.append("onboardingId", onboardingId); 
 
           try {
             const response = await fetch("http://localhost:8080/api/v1/document/upload", {

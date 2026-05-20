@@ -12,13 +12,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #e2e8f0;
-  }
-}
-
 body {
   min-height: 100vh;
   margin: 0;
@@ -33,4 +26,15 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+/* Force dark text on all form inputs regardless of inherited color or dark mode */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  color: #0f172a !important;
 }
