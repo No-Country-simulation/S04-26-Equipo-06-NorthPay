@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/v1/document")
+@RequestMapping("/api/v1/document")
 public class DocumentController {
 
 

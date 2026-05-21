@@ -27,7 +27,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/onboarding")
+@RequestMapping("/v1/onboarding")
 @AllArgsConstructor
 public class OnboardingController {
 
@@ -51,7 +51,7 @@ public class OnboardingController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(onboardingDTO);
     } 
 
-    @PostMapping("")
+    @PostMapping("/createOnboarding")
     public ResponseEntity<Onboarding> createOnboarding() {
 
         Onboarding onboarding = onboardingService.create();

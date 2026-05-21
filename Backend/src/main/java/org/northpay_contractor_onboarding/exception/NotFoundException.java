@@ -1,11 +1,12 @@
 package org.northpay_contractor_onboarding.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-public class NotFoundException extends ApiError {
-
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class NotFoundException extends RuntimeException {
     public NotFoundException(String message) {
-        super(message, HttpStatus.NOT_FOUND);
+        super(message);
         
     }
    

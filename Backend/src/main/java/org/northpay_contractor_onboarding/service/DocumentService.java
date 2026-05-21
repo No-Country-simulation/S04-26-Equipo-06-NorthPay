@@ -81,7 +81,7 @@ public class DocumentService implements IDocumentService{
 
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
 
-            Path path = Paths.get(fileName);
+            Path path = Paths.get("uploads");
 
             if (!Files.exists(path)){
                 Files.createDirectories(path);
@@ -93,7 +93,11 @@ public class DocumentService implements IDocumentService{
 
             String fileUrl = "/uploads/" + fileName;
 
-            Document document = new Document();
+            Document document = documentRepository.findByOnboardingId(onboardingId);
+            if (document == null) {
+                document = new Document();
+                document.setOnboarding(onboarding);
+            }
 
             document.setFileUrl(fileUrl);
             document.setFileHash(fileHash);
@@ -104,10 +108,9 @@ public class DocumentService implements IDocumentService{
                 String extension = originalName.substring(originalName.lastIndexOf(".") + 1);
                 document.setFileExtension(extension);
             }
-            document.setVersion(1);
+            document.setVersion(document.getVersion() != null ? document.getVersion() + 1 : 1);
             document.setActiveVersion(true);
             document.setStatus(DocumentStatus.PENDING_REVIEW);
-            document.setOnboarding(onboarding);
 
             Document savedDocument = documentRepository.save(document);
 
@@ -123,16 +126,17 @@ public class DocumentService implements IDocumentService{
         List<String> allowedExtensions = List.of(
                 "image/jpg",
                 "image/jpeg",
-                "image/png");
+                "image/png",
+                "application/pdf");
 
         if(!allowedExtensions.contains(file.getContentType())){
-            throw new IllegalArgumentException("Invalid file type");
+            throw new IllegalArgumentException("Invalid file type: " + file.getContentType());
         }
 
-        long maxSize = 5 * 1024 * 1024;
+        long maxSize = 10 * 1024 * 1024;
 
         if(file.getSize() > maxSize){
-            throw new IllegalArgumentException("File size exceeds 1MB");
+            throw new IllegalArgumentException("File size exceeds 10MB");
         }
 
     }

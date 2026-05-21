@@ -1,6 +1,6 @@
 import { OnboardingData } from "../../app/onboarding/types";
 
-type PersonalDataField = "firstName" | "lastName" | "email" | "phone";
+type PersonalDataField = "firstName" | "lastName" | "email" | "phone" | "country" | "address";
 
 type PersonalDataErrors = Partial<Record<PersonalDataField, string>>;
 
@@ -10,11 +10,7 @@ interface Props {
   errors: PersonalDataErrors;
 }
 
-export default function PersonalData({
-  data,
-  onChange,
-  errors,
-}: Props) {
+export default function PersonalData({ data, onChange, errors }: Props) {
   const hasError = (field: PersonalDataField) => {
     return Boolean(errors[field]);
   };
@@ -44,22 +40,24 @@ export default function PersonalData({
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="space-y-2">
-           <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-    First Name
-  </label>
+          <label className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            First Name
+          </label>
 
-  <input
-    id="firstName"
-    type="text"
-    value={data.firstName}
-    onChange={(e) => onChange("firstName", e.target.value)}
-    className={getInputClassName("firstName")}
-    placeholder="e.g. John"
-    aria-invalid={hasError("firstName")}
-    aria-describedby={hasError("firstName") ? "firstName-error" : undefined}
-  />
+          <input
+            id="firstName"
+            type="text"
+            value={data.firstName}
+            onChange={(e) => onChange("firstName", e.target.value)}
+            className={getInputClassName("firstName")}
+            placeholder="e.g. John"
+            aria-invalid={hasError("firstName")}
+            aria-describedby={
+              hasError("firstName") ? "firstName-error" : undefined
+            }
+          />
 
-  <div id="firstName-error">{renderError("firstName")}</div>
+          <div id="firstName-error">{renderError("firstName")}</div>
         </div>
 
         <div className="space-y-2">
@@ -132,6 +130,53 @@ export default function PersonalData({
           <div id="phone-error">{renderError("phone")}</div>
         </div>
       </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="space-y-2">
+          <label
+            htmlFor="country"
+            className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+          >
+            Country
+          </label>
+
+          <input
+            id="country"
+            type="text"
+            value={data.country ?? ""}
+            onChange={(e) => onChange("country", e.target.value)}
+            className={getInputClassName("country")}
+            placeholder="e.g. Argentina"
+            aria-invalid={hasError("country")}
+            aria-describedby={hasError("country") ? "country-error" : undefined}
+          />
+
+          <div id="country-error">{renderError("country")}</div>
+        </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="address"
+            className="text-[11px] font-bold uppercase tracking-widest text-slate-400"
+          >
+            Address
+          </label>
+
+          <input
+            id="address"
+            type="text"
+            value={data.address ?? ""}
+            onChange={(e) => onChange("address", e.target.value)}
+            className={getInputClassName("address")}
+            placeholder="e.g. 123 Main St, Apt 4B"
+            aria-invalid={hasError("address")}
+            aria-describedby={hasError("address") ? "address-error" : undefined}
+          />
+
+          <div id="address-error">{renderError("address")}</div>
+        </div>
+      </div>
     </div>
   );
 }
+
