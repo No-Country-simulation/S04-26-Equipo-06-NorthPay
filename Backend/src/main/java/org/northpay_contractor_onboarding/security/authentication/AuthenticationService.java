@@ -5,6 +5,8 @@ import org.northpay_contractor_onboarding.dto.jwt.JwtClaimsDTO;
 import org.northpay_contractor_onboarding.dto.jwt.TokenDTO;
 import org.northpay_contractor_onboarding.enums.JwtTypes;
 import org.northpay_contractor_onboarding.enums.Roles;
+import org.northpay_contractor_onboarding.exception.AlreadyExistsException;
+import org.northpay_contractor_onboarding.exception.NotFoundException;
 import org.northpay_contractor_onboarding.model.Operators;
 import org.northpay_contractor_onboarding.repository.OperatorRepository;
 import org.northpay_contractor_onboarding.security.jwt.JwtService;
@@ -31,10 +33,10 @@ public class AuthenticationService {
     // Revisa que en el contexto de seguridad no haya ya alguna autenticación realizada
     Authentication currentAuthInContext = SecurityContextHolder.getContext().getAuthentication();
     if (currentAuthInContext.getPrincipal() instanceof AuthenticatedUserDetails)
-      throw new RuntimeException("Ya hay una sesión de cuenta iniciada");
+      throw new AlreadyExistsException("Ya hay una sesión de cuenta iniciada");
 
     Operators operatorToLog = operatorRepository.findByEmail(email).orElseThrow(
-      () -> new RuntimeException("cuenta nombre de usuario")
+      () -> new NotFoundException("Operator with email '%s' not found".formatted("email"))
     );
 
     String token = jwtService.generateToken(new JwtClaimsDTO(operatorToLog.getName(), Roles.OPERATOR, JwtTypes.operatorAuth), email);
@@ -53,7 +55,7 @@ public class AuthenticationService {
   public TokenDTO logout() {
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     if (auth == null || !(auth.getPrincipal() instanceof AuthenticatedUserDetails)) {
-      throw new RuntimeException("No hay cuenta en sesión para cerrar");
+      throw new NotFoundException("No session to logout was found");
     }
 
     SecurityContextHolder.clearContext();

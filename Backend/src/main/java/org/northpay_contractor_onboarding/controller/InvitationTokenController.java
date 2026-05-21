@@ -61,8 +61,14 @@ public class InvitationTokenController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<TokenDTO> postMethodName(@Valid @RequestBody ContractorLoginDTO info) {
+  public ResponseEntity<TokenDTO> login(@Valid @RequestBody ContractorLoginDTO info) {
     return new ResponseEntity<>(invTokenService.login(info), HttpStatus.OK);
   }
   
+  @PatchMapping("/invalidate")
+  @PreAuthorize("hasAnyRole('OPERATOR')")
+  public ResponseEntity<Void> invalidate(@NotBlank String tokenUrl) {
+    invTokenService.invalidateToken(tokenUrl);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 }
