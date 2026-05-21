@@ -1,4 +1,4 @@
-package org.northpay_contractor_onboarding.dto;
+package org.northpay_contractor_onboarding.dto.onboardingDtos;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

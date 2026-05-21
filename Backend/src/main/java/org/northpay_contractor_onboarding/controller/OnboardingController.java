@@ -1,9 +1,11 @@
 package org.northpay_contractor_onboarding.controller;
 
-import java.util.List;
+
 import java.util.UUID;
 
-import org.northpay_contractor_onboarding.dto.OnboardingDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.service.IOnboardiIngService;
 import org.springframework.data.domain.Page;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
-import jakarta.websocket.server.PathParam;
+
 import lombok.AllArgsConstructor;
 
 @RestController
@@ -82,6 +84,14 @@ public class OnboardingController {
         
         return ResponseEntity.ok(onboarding);
 
+    }
+    @GetMapping("{id}/dataPersonal")
+    public ResponseEntity<DataPersonalDTO> dataPersonal(@PathVariable UUID id){
+
+        var onboardingDataPersonal = onboardingService.dataPersonal(id);
+
+        return ResponseEntity.ok(onboardingDataPersonal);
+        
     }
     
 

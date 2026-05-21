@@ -1,4 +1,4 @@
-package org.northpay_contractor_onboarding.dto;
+package org.northpay_contractor_onboarding.dto.onboardingDtos;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,17 +21,12 @@ public class OnboardingDTO {
     private UUID id;
     private Integer currentStep;
     private OnboardingStatus status;
-    private String completeName;
-    private String email;
-    private PaymentMethodTypes paymentMethodTypes;
-   
 
     public OnboardingDTO(Onboarding onboarding) {
         this.currentStep = onboarding.getCurrentStep();
+        this.id = onboarding.getId();
         this.status = onboarding.getStatus();
-        this.completeName = onboarding.getContractor().getFirstName() + onboarding.getContractor().getLastName();
-        this.email = onboarding.getContractor().getEmail();
-        this.paymentMethodTypes = onboarding.getPaymentMethod().getPaymentMethodType();
+
     }
 
     @Getter
@@ -57,4 +52,3 @@ public class OnboardingDTO {
         private String address;
     }
 }
-
