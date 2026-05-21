@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingSummaryDTO;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.service.IOnboardiIngService;
 import org.springframework.data.domain.Page;
@@ -27,7 +28,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("/v1/onboarding")
+@RequestMapping("api/v1/onboarding")
 @AllArgsConstructor
 public class OnboardingController {
 
@@ -75,12 +76,12 @@ public class OnboardingController {
         return ResponseEntity.ok(onboarding);
     }
 
-    @GetMapping("")
-    public ResponseEntity<Page<OnboardingDTO>> getAllOnboarding(
+    @GetMapping("admin/list")
+    public ResponseEntity<Page<OnboardingSummaryDTO>> getAllOnboarding(
         @PageableDefault(page = 0, size = 5) Pageable pageable)
         {
         
-        Page<OnboardingDTO> onboarding = onboardingService.getAll(pageable);
+        Page<OnboardingSummaryDTO> onboarding = onboardingService.getAll(pageable);
         
         return ResponseEntity.ok(onboarding);
 

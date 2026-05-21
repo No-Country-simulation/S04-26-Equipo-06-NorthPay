@@ -7,6 +7,8 @@ import java.util.UUID;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingSummaryDTO;
+import org.northpay_contractor_onboarding.enums.ApprovalStatus;
 import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 import org.northpay_contractor_onboarding.exception.NotFoundException;
 
@@ -98,11 +100,11 @@ public class OnboardingService implements IOnboardiIngService {
                 var onboarding = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("Onboarding not found"));
 
-                          onboarding.setStatus(responseOnboarding.getStatus());
+                onboarding.setStatus(responseOnboarding.getStatus());
 
-                 var dbOnboardin = onboardingRepository.save(onboarding);
+                var dbOnboardin = onboardingRepository.save(onboarding);
 
-                return new OnboardingDTO(dbOnboardin );
+                return new OnboardingDTO(dbOnboardin);
         }
 
         @Override
@@ -116,7 +118,7 @@ public class OnboardingService implements IOnboardiIngService {
 
         @Override
         @Transactional(readOnly = true)
-        public Page<OnboardingDTO> getAll(Pageable pageable) {
+        public Page<OnboardingSummaryDTO> getAll(Pageable pageable) {
 
                 Page<Onboarding> onboardingPage = onboardingRepository.findAll(pageable);
 
@@ -124,9 +126,13 @@ public class OnboardingService implements IOnboardiIngService {
                         throw new NotFoundException("there are no onboardings");
                 }
 
-                Page<OnboardingDTO> onboardingDTOs = onboardingPage.map(
-                                onboar -> new OnboardingDTO(onboar));
-                return onboardingDTOs;
+                Page<OnboardingSummaryDTO> onboardingSummaryDTOs = onboardingPage.map(o -> {
+                       
+                        ApprovalStatus visualStatus = ApprovalStatus.fromOnboardingStatus(o.getStatus());
+                        return new OnboardingSummaryDTO(visualStatus, o);
+                });
+
+                return onboardingSummaryDTOs;
         }
 
         @Override
