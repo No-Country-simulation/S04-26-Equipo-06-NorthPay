@@ -36,7 +36,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorBody, ex.getStatus());
     }
 
-
     /*
      * =========================
      * 400 - BAD REQUEST
