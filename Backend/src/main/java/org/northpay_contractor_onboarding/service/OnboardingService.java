@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingCompleteDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingSummaryDTO;
 import org.northpay_contractor_onboarding.enums.ApprovalStatus;
@@ -142,7 +143,9 @@ public class OnboardingService implements IOnboardiIngService {
                 var dbOnboarding = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("onboarding not found"));
 
-                return new DataPersonalDTO(dbOnboarding);
+                var contactInformation = dbOnboarding.getContractor().getContactInformation();
+
+                return new DataPersonalDTO(dbOnboarding , contactInformation);
 
         }
 
@@ -150,6 +153,18 @@ public class OnboardingService implements IOnboardiIngService {
         public OnboardingDTO approve(UUID id, OnboardingApproveRequest responseOnboardig) {
                 // TODO Auto-generated method stub
                 throw new UnsupportedOperationException("Unimplemented method 'approve'");
+        }
+
+        @Override
+        public OnboardingCompleteDTO getOnboardinAmin(UUID id) {
+               
+                var onboardinFull = onboardingRepository.findById(id).orElseThrow(
+                        () -> new NotFoundException("onboarding not found")
+                );
+                
+                
+                return new OnboardingCompleteDTO(onboardinFull);
+                
         }
 
 }

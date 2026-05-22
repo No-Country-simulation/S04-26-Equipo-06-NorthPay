@@ -12,12 +12,18 @@ import lombok.Setter;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
+
 public class ContactInformation {
     private String email;
     private String country;
     private String phoneNumber;
     private String address;
+    public ContactInformation(String email, String country, String phoneNumber, String address) {
+        this.email = email;
+        this.country = country;
+        this.phoneNumber = phoneNumber;
+        this.address = address;
+    }
     
 
 }

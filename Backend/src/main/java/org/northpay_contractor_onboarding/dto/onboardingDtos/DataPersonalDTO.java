@@ -13,17 +13,17 @@ public class DataPersonalDTO {
 
 
     private UUID id;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String textId;
     private ContactInformation contactInformation;
-    public DataPersonalDTO(Onboarding onboarding) {
+    public DataPersonalDTO(Onboarding onboarding , ContactInformation contactInformation) {
         this.id = onboarding.getContractor().getId();
-        this.firstName = onboarding.getContractor().getFirstName();
-         this.lastName = onboarding.getContractor().getLastName();
+        this.fullName = onboarding.getContractor().getFirstName() +" "+ onboarding.getContractor().getLastName();
         this.textId = onboarding.getContractor().getTextId();
         this.contactInformation = onboarding.getContractor().getContactInformation();
     }
+
+   
 
     
     
