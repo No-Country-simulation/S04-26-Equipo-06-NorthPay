@@ -3,6 +3,7 @@ package org.northpay_contractor_onboarding.controller;
 import java.util.Map;
 import java.util.UUID;
 
+import org.northpay_contractor_onboarding.enums.PaymentMethodTypes;
 import org.northpay_contractor_onboarding.exception.NotFoundException;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.northpay_contractor_onboarding.service.AuditLogService;
@@ -34,7 +35,6 @@ public class AuditLogController {
         String cleanValue = "N/A";
         var contractor = onboarding.getContractor();
 
-        // 2. Evaluamos qué quiere revelar el Admin
         if (contractor != null) {
             if ("email".equalsIgnoreCase(fieldName)) {
                 cleanValue = contractor.getEmail();
@@ -42,6 +42,23 @@ public class AuditLogController {
                 cleanValue = contractor.getContactInformation() != null
                         ? contractor.getContactInformation().getPhoneNumber()
                         : "N/A";
+            } else if ("documentNumber".equalsIgnoreCase(fieldName)) {
+
+                cleanValue = "documentNumber";
+
+            } else if ("account".equalsIgnoreCase(fieldName)) {
+                var payment = onboarding.getPaymentMethod();
+
+                if (payment != null && payment.getPaymentMethodType() != null) {
+
+                    if (payment.getPaymentMethodType() == PaymentMethodTypes.DIGITAL_PLATFORM) {
+                        cleanValue = payment.getWalletEmail();
+                    }
+
+                    else if (payment.getPaymentMethodType() == PaymentMethodTypes.CRYPTO_CURRENCY) {
+                        cleanValue = payment.getWalletAddress();
+                    }
+                }
             }
         }
 

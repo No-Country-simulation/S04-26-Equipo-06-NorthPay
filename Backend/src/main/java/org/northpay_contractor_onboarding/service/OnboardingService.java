@@ -32,7 +32,7 @@ import lombok.AllArgsConstructor;
 public class OnboardingService implements IOnboardiIngService {
 
         private final OnboardingRepository onboardingRepository;
-
+        private final AuditLogService auditLogService;
         private final IContractorService ioContractorService;
         private final StateMachineService stateMachineService;
 
@@ -178,6 +178,8 @@ public class OnboardingService implements IOnboardiIngService {
 
                 var onboardinFull = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("onboarding not found"));
+
+                auditLogService.logAction("Operator", "VIEW_ONBOARDING_DETAIL", "Onboarding ID: " + id, "SUCCESS");
 
                 return new OnboardingCompleteDTO(onboardinFull);
 
