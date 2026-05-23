@@ -1,6 +1,6 @@
 package org.northpay_contractor_onboarding.dto.onboardingDtos;
 
-import org.northpay_contractor_onboarding.serializers.ProtectDataSerializer;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -2,7 +2,7 @@ package org.northpay_contractor_onboarding.dto.onboardingDtos;
 
 import java.time.LocalDateTime;
 
-import org.northpay_contractor_onboarding.serializers.ProtectDataSerializer;
+
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
