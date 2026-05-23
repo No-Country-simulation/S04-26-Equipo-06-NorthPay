@@ -9,11 +9,10 @@ import lombok.Getter;
 import lombok.Setter;
 @Getter
 @Setter
-
 public class OnboardingApproveRequest {
 
     private OnboardingStatus onboardingStatus;
     private String reason ;
-    private List<Integer> steps = new ArrayList<>();
+   
     
 }

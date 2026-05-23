@@ -6,8 +6,10 @@ import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingChangeRequested;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingCompleteDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
+
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingSummaryDTO;
 import org.northpay_contractor_onboarding.enums.ApprovalStatus;
 import org.northpay_contractor_onboarding.enums.OnboardingStatus;
@@ -128,7 +130,7 @@ public class OnboardingService implements IOnboardiIngService {
                 }
 
                 Page<OnboardingSummaryDTO> onboardingSummaryDTOs = onboardingPage.map(o -> {
-                       
+
                         ApprovalStatus visualStatus = ApprovalStatus.fromOnboardingStatus(o.getStatus());
                         return new OnboardingSummaryDTO(visualStatus, o);
                 });
@@ -145,26 +147,40 @@ public class OnboardingService implements IOnboardiIngService {
 
                 var contactInformation = dbOnboarding.getContractor().getContactInformation();
 
-                return new DataPersonalDTO(dbOnboarding , contactInformation);
+                return new DataPersonalDTO(dbOnboarding, contactInformation);
 
         }
 
         @Override
         public OnboardingDTO approve(UUID id, OnboardingApproveRequest responseOnboardig) {
-                // TODO Auto-generated method stub
-                throw new UnsupportedOperationException("Unimplemented method 'approve'");
+
+                var onboardingDb = onboardingRepository.findById(id).orElseThrow(
+                                () -> new NotFoundException("onboarding not found"));
+
+                stateMachineService.transitionTo(onboardingDb, OnboardingStatus.CHANGES_REQUESTED, "Operator");
+
+                return new OnboardingDTO(onboardingDb);
+        }
+
+        @Override
+        public OnboardingDTO changeRequested(UUID id, OnboardingChangeRequested responseOnboardig) {
+
+                var onboardingDb = onboardingRepository.findById(id).orElseThrow(
+                                () -> new NotFoundException("onboarding not found"));
+
+                stateMachineService.transitionTo(onboardingDb, OnboardingStatus.CHANGES_REQUESTED, "Operator");
+
+                return new OnboardingDTO(onboardingDb);
         }
 
         @Override
         public OnboardingCompleteDTO getOnboardinAmin(UUID id) {
-               
+
                 var onboardinFull = onboardingRepository.findById(id).orElseThrow(
-                        () -> new NotFoundException("onboarding not found")
-                );
-                
-                
+                                () -> new NotFoundException("onboarding not found"));
+
                 return new OnboardingCompleteDTO(onboardinFull);
-                
+
         }
 
 }

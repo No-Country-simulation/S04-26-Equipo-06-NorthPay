@@ -5,8 +5,10 @@ import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingChangeRequested;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingCompleteDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
+
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingSummaryDTO;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.springframework.data.domain.Page;
@@ -24,4 +26,5 @@ public interface IOnboardiIngService {
   Page<OnboardingSummaryDTO> getAll(Pageable pageable);
   DataPersonalDTO dataPersonal(UUID id);
   OnboardingDTO approve(UUID id, OnboardingApproveRequest responseOnboardig);
+  OnboardingDTO changeRequested(UUID id, OnboardingChangeRequested responseOnboardig);
 }

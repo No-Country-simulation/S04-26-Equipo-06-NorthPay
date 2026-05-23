@@ -4,8 +4,10 @@ import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingChangeRequested;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingCompleteDTO;
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
+
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingSummaryDTO;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.service.IOnboardiIngService;
@@ -45,10 +47,20 @@ public class OnboardingController {
 
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<OnboardingDTO> update(@PathVariable UUID id, @RequestBody Onboarding responseOnboardig) {
+    @PatchMapping("/{id}/approve")
+    public ResponseEntity<OnboardingDTO> approve(@PathVariable UUID id,
+            @RequestBody OnboardingApproveRequest requestOnboardig) {
 
-        var onboardingDTO = onboardingService.update(id, responseOnboardig);
+        var onboardingDTO = onboardingService.approve(id, requestOnboardig);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(onboardingDTO);
+    }
+
+    @PatchMapping("/{id}/changeRequested")
+    public ResponseEntity<OnboardingDTO> changeRequested(@PathVariable UUID id,
+            @RequestBody OnboardingChangeRequested requestOnboardig) {
+
+        var onboardingDTO = onboardingService.changeRequested(id, requestOnboardig);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(onboardingDTO);
     }
