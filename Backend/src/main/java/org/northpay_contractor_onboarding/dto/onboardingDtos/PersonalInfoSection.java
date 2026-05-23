@@ -7,25 +7,19 @@ import lombok.Getter;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @AllArgsConstructor
+@Getter
 public class PersonalInfoSection {
 
-    @Getter
+   
     private final String fullName;
     private final String email;
     private final String phone;
-    @Getter
     private final String country;
-    @Getter
     private final String address;
 
-    @JsonSerialize(using = ProtectDataSerializer.class)
-    public String getEmail() {
-        return this.email;
-    }
+    
+  
 
-    @JsonSerialize(using = ProtectDataSerializer.class)
-    public String getPhone() {
-        return this.phone;
-    }
+ 
 
 }

@@ -16,7 +16,6 @@ public class DocumentationSection {
 
     private final String documentType;
 
-    @JsonSerialize(using = ProtectDataSerializer.class)
     private final String documentNumber;
 
     private final List<FileDTO> urlFiles;

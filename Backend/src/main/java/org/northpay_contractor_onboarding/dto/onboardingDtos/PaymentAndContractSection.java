@@ -13,20 +13,11 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PaymentAndContractSection {
 
-    @Getter
     private final String platform;
-    @Getter
     private final String walletEmail;
-    @Getter
     private final String network;
-    @Getter
     private final String walletAddress;
-    private final String account; 
-    @Getter
+    private final String account;
     private final Boolean contractSigned;
 
-    @JsonSerialize(using = ProtectDataSerializer.class)
-    public String getAccount() {
-        return this.account;
-    }
 }
