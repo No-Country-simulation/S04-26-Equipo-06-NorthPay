@@ -9,18 +9,24 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-
 @Getter
 @AllArgsConstructor
 public class PaymentAndContractSection {
 
+    @Getter
     private final String platform;
+    @Getter
     private final String walletEmail;
+    @Getter
     private final String network;
+    @Getter
     private final String walletAddress;
-
-    @JsonSerialize(using = ProtectDataSerializer.class) // <-- Al ser una clase, Jackson lo lee al toque de acá
-    private final String account;
-
+    private final String account; 
+    @Getter
     private final Boolean contractSigned;
+
+    @JsonSerialize(using = ProtectDataSerializer.class)
+    public String getAccount() {
+        return this.account;
+    }
 }

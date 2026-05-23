@@ -22,7 +22,6 @@ public class OnboardingCompleteDTO {
         private PersonalInfoSection personalInformation;
         private DocumentationSection documentation;
         private PaymentAndContractSection paymentInformation;
-       
 
         public OnboardingCompleteDTO(Onboarding onboarding) {
                 if (onboarding == null)
@@ -44,41 +43,37 @@ public class OnboardingCompleteDTO {
                 String country = "N/A";
 
                 if (personalData != null) {
-
                         completeName = personalData.getFirstName() + " " + personalData.getLastName();
-                        email = personalData.getEmail();
 
-                        if (personalData.getContactInformation() != null) {
-                                address = personalData.getContactInformation().getAddress();
-                                phone = personalData.getContactInformation().getPhoneNumber();
-                                country = personalData.getContactInformation().getCountry();
+                        String rawEmail = personalData.getEmail();
+                        email = (rawEmail != null) ? rawEmail.replaceAll("(?<=.{3}).(?=.*@)", "*") : "Pending";
+
+                        String rawPhone = personalData.getContactInformation().getPhoneNumber();
+                        if (rawPhone != null && rawPhone.length() > 4) {
+                                phone = "xxxx-xxxx-" + rawPhone.substring(rawPhone.length() - 4);
+                        } else {
+                                phone = (rawPhone != null) ? rawPhone : "N/A";
                         }
                 }
+
                 this.personalInformation = new PersonalInfoSection(completeName, email, phone, country, address);
+
                 this.documentation = new DocumentationSection("NOT_SPECIFIED", "N/A", List.of());
                 if (documents != null && !documents.isEmpty()) {
-
                         List<FileDTO> fileMap = onboarding.getDocuments().stream()
-                                        .map(docu -> new FileDTO(
-                                                        docu.getFileType(),
-
-                                                        docu.getFileUrl()))
+                                        .map(docu -> new FileDTO(docu.getFileType(), docu.getFileUrl()))
                                         .toList();
                         var firstDoc = onboarding.getDocuments().get(0);
 
-                        String typeDoc = (firstDoc != null && firstDoc.getFileType() != null)
-                                        ? firstDoc.getFileType()
+                        String typeDoc = (firstDoc != null && firstDoc.getFileType() != null) ? firstDoc.getFileType()
                                         : "DNI";
-                        String numDoc = "42345678";;
-                        // TODO me falta todavia conseguir el dni de la validacion de indentidad
-                        // if (onboarding.getContractor() != null
-                        // && onboarding.getContractor().getDocumentNumber() != null) {
-                        // numDoc = onboarding.getContractor().getDocumentNumber();
-                        // }
-                       
+                        
+                        String numDoc = "42345678";
 
-                        this.documentation = new DocumentationSection(typeDoc, numDoc, fileMap);
+                        String maskedDoc = numDoc.length() > 4 ? "xx.xxx." + numDoc.substring(numDoc.length() - 3)
+                                        : "****";
 
+                        this.documentation = new DocumentationSection(typeDoc, maskedDoc, fileMap);
                 }
 
                 String platform = "";
@@ -91,18 +86,21 @@ public class OnboardingCompleteDTO {
                         if (payment.getPaymentMethodType() == PaymentMethodTypes.DIGITAL_PLATFORM) {
                                 platform = payment.getPlatform();
                                 walletEmail = payment.getWalletEmail();
-                                accountDetail = payment.getWalletEmail();
+
+                                accountDetail = (walletEmail != null) ? walletEmail.replaceAll("(?<=.{3}).(?=.*@)", "*")
+                                                : "N/A";
                         } else if (payment.getPaymentMethodType() == PaymentMethodTypes.CRYPTO_CURRENCY) {
                                 network = payment.getNetwork();
                                 walletAddress = payment.getWalletAddress();
-                                accountDetail = payment.getWalletAddress();
+
+                                accountDetail = (walletAddress != null && walletAddress.length() > 4)
+                                                ? "xx.xxx." + walletAddress.substring(walletAddress.length() - 4)
+                                                : "N/A";
                         }
                 }
 
                 Boolean signed = false;
-
                 if (contract != null) {
-
                         signed = Boolean.TRUE.equals(contract.getSigned());
                 }
 
@@ -113,7 +111,6 @@ public class OnboardingCompleteDTO {
                                 walletAddress,
                                 accountDetail,
                                 signed);
-
         }
 
 }

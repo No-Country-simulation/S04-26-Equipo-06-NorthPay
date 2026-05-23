@@ -1,42 +1,47 @@
 package org.northpay_contractor_onboarding.serializers;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-public class ProtectDataSerializer extends JsonSerializer<Object> {
+import java.io.IOException;
+
+import org.springframework.boot.jackson.JsonComponent;
+
+
+public class ProtectDataSerializer extends JsonSerializer<String> { // <-- CAMBIADO A String
 
     @Override
-    public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-
+    public void serialize(String value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        // Al heredar de JsonSerializer<String>, 'value' ya es un String directo
         if (value == null) {
             gen.writeNull();
             return;
         }
 
-        String input = value.toString();
-        String fieldName = gen.getOutputContext().getCurrentName();
+        // Salvaguarda total para valores por defecto
+        if (value.equalsIgnoreCase("N/A") || value.equalsIgnoreCase("Pending") || value.isBlank()) {
+            gen.writeString(value);
+            return;
+        }
+
         String maskedValue;
 
-        if (fieldName != null && fieldName.toLowerCase().contains("email")) {
-         
-            maskedValue = input.replaceAll("(?<=.{3}).(?=.*@)", "*");
-
-        } else if (fieldName != null
-                && (fieldName.toLowerCase().contains("phone") || fieldName.toLowerCase().contains("account"))) {
-        
-            maskedValue = input.replaceAll("\\w(?=\\w{4})", "x");
-
+        // Clasificación inteligente por contenido
+        if (value.contains("@")) {
+            // Caso: Email
+            maskedValue = value.replaceAll("(?<=.{3}).(?=.*@)", "*");
+        } else if (value.startsWith("+") || value.matches("^[0-9\\s\\-]+$") && value.length() > 6) {
+            // Caso: Teléfono
+            maskedValue = value.replaceAll("\\w(?=\\w{4})", "x");
         } else {
-            
-            maskedValue = input.length() > 4
-                    ? "xx.xxx." + input.substring(input.length() - 3)
+            // Caso: CBU, DNI o Wallet Crypto
+            maskedValue = value.length() > 4 
+                    ? "xx.xxx." + value.substring(value.length() - 3)
                     : "****";
         }
 
         gen.writeString(maskedValue);
     }
-
 }
+

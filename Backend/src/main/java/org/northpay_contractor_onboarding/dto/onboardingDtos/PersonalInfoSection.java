@@ -1,25 +1,31 @@
 package org.northpay_contractor_onboarding.dto.onboardingDtos;
 
-
+import org.northpay_contractor_onboarding.serializers.ProtectDataSerializer;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@Getter
 @AllArgsConstructor
 public class PersonalInfoSection {
 
+    @Getter
     private final String fullName;
-
-
-    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = org.northpay_contractor_onboarding.serializers.ProtectDataSerializer.class)
     private final String email;
-
-    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = org.northpay_contractor_onboarding.serializers.ProtectDataSerializer.class)
     private final String phone;
-
+    @Getter
     private final String country;
+    @Getter
     private final String address;
 
-    
+    @JsonSerialize(using = ProtectDataSerializer.class)
+    public String getEmail() {
+        return this.email;
     }
+
+    @JsonSerialize(using = ProtectDataSerializer.class)
+    public String getPhone() {
+        return this.phone;
+    }
+
+}
