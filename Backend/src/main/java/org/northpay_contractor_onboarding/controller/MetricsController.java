@@ -1,6 +1,6 @@
 package org.northpay_contractor_onboarding.controller;
 
-import org.northpay_contractor_onboarding.dto.MetricsResponseDTO;
+import org.northpay_contractor_onboarding.dto.MetricsDTO;
 import org.northpay_contractor_onboarding.service.MetricsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ public class MetricsController {
     summary = "Get metrics without synchronization",
     description = "This method should be used when the frontend has to render these metrics. To synchronize connect to websocket `/topic/metrics`"
   )
-  public ResponseEntity<MetricsResponseDTO> getAll() {
+  public ResponseEntity<MetricsDTO> getAll() {
     return new ResponseEntity<>(metricsService.getMetrics(), HttpStatus.OK);
   }
 }

@@ -1,5 +1,5 @@
 package org.northpay_contractor_onboarding.events.events;
 
-import org.northpay_contractor_onboarding.dto.MetricsResponseDTO;
+import org.northpay_contractor_onboarding.dto.MetricsDTO;
 
-public record MetricsEvent(MetricsResponseDTO data) {}
+public record MetricsEvent(MetricsDTO data) {}
