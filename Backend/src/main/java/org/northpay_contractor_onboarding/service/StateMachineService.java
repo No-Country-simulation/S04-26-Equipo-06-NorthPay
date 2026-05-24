@@ -14,6 +14,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class StateMachineService {
     private final IOnboardingHistoryService iOnboardingHistoryService;
+    private final MetricsService metricsService;
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void transitionTo(Onboarding onboarding, OnboardingStatus nextStatus, String changedBy) {
@@ -51,6 +52,7 @@ public class StateMachineService {
                 .build();
 
         registerHistory(registroHistoryDTO);
+        metricsService.emitMetricsEvent();
     }
 
     private void registerHistory(RegistroHistoryDTO registroHistoryDTO) {

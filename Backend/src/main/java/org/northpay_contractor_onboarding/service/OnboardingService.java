@@ -28,6 +28,7 @@ public class OnboardingService implements IOnboardiIngService {
 
         private final IContractorService ioContractorService;
         private final StateMachineService stateMachineService;
+        private final MetricsService metricsService;
 
         @Override
         @Transactional
@@ -71,6 +72,7 @@ public class OnboardingService implements IOnboardiIngService {
                                 .currentStep(1).status(OnboardingStatus.INVITED).build();
 
                 var dbOnboarding = onboardingRepository.save(onboarding);
+                metricsService.emitMetricsEvent();
 
                 return dbOnboarding;
         }
@@ -99,9 +101,10 @@ public class OnboardingService implements IOnboardiIngService {
                 var onboarding = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("Onboarding not found"));
 
-                          onboarding.setStatus(responseOnboarding.getStatus());
+                onboarding.setStatus(responseOnboarding.getStatus());
+                metricsService.emitMetricsEvent();
 
-                 var dbOnboardin = onboardingRepository.save(onboarding);
+                var dbOnboardin = onboardingRepository.save(onboarding);
 
                 return new OnboardingDTO(dbOnboardin );
         }
