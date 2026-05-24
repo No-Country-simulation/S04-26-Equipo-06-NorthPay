@@ -101,7 +101,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                 "status", 401,
                 "error", "Unauthorized",
-                "message", "Token expired")
+                "message", ex.getMessage().isBlank() ? "Token expired" : ex.getMessage())
         );
     }
 

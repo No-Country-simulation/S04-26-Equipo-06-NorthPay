@@ -100,10 +100,10 @@ public class InvitationTokenService implements IInvitationTokenService {
   public boolean checkInvitationTokenUrlIsExpired(String tokenUrl) {
     return invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
       () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
-    ).getExpiresAt().isAfter(LocalDateTime.now());
+    ).getExpiresAt().isBefore(LocalDateTime.now());
   }
   public boolean checkInvitationTokenUrlIsExpired(InvitationTokens invToken) {
-    return invToken.getExpiresAt().isAfter(LocalDateTime.now());
+    return invToken.getExpiresAt().isBefore(LocalDateTime.now());
   }
 
   @Override
@@ -115,7 +115,7 @@ public class InvitationTokenService implements IInvitationTokenService {
     // Validaciones ==========================
     if (this.checkInvitationTokenUrlIsExpired(referredToken) && !referredToken.getUsed()) {
       invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build()); // registro de intento
-      throw new ExpiredJwtException(null, null, "Expired token");
+      throw new ExpiredJwtException(null, null, "Expired invitation token.");
     }
     if (referredToken.getUsed() && referredToken.getIsValid()) 
       throw new AlreadyExistsException("This invitation token has already been used, cannot set a new password. Use login endpoint instead"); 
