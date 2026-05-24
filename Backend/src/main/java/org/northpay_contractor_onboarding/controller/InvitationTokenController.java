@@ -57,7 +57,7 @@ public class InvitationTokenController {
 
   @PatchMapping("/first-time-use")
   @Operation(
-    description = "Use token to create a contractor password"
+    description = "Use token to create a contractor password. Use `/invitation-token/login` after"
   )
   public ResponseEntity<Void> useTokenForFirstTime(@Valid @RequestBody InvTokenContractorSignUp data) {
     invTokenService.useTokenForFirstTime(data);

@@ -212,6 +212,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "status", 500,
                 "error", "Internal Server Error",
-                "message", ex.getMessage()));
+                "message", ex.getMessage(),
+                "stackTrace", ex.getStackTrace()));
     }
 }
