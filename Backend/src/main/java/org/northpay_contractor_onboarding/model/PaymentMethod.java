@@ -1,4 +1,5 @@
 package org.northpay_contractor_onboarding.model;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.northpay_contractor_onboarding.enums.PaymentMethodTypes;
@@ -15,24 +16,24 @@ import java.util.UUID;
 public class PaymentMethod {
 
     @Id
-    @GeneratedValue( strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID payment_method_id;
 
     @Enumerated(EnumType.STRING)
     private PaymentMethodTypes paymentMethodType;
 
-    //DIGITAL PLATFORMS
+    // DIGITAL PLATFORMS
     private String platform;
     private String walletEmail;
 
-    //CRYPTO CURRENCIES
+    // CRYPTO CURRENCIES
     private String network;
     private String walletAddress;
 
-    //DATE DATA
+    // DATE DATA
     private LocalDateTime created_at;
 
-    //VERIFICATION
+    // VERIFICATION
     @Column(nullable = false)
     private Boolean isPaymentVerified = false;
 
@@ -40,8 +41,6 @@ public class PaymentMethod {
     private String verificationNotes;
 
     @OneToOne
-    @JoinColumn(name="onboarding_id",
-            referencedColumnName = "id"
-            , nullable = false)
+    @JoinColumn(name = "onboarding_id", referencedColumnName = "id", nullable = false)
     private Onboarding onboarding;
 }

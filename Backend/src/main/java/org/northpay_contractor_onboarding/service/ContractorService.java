@@ -2,8 +2,7 @@ package org.northpay_contractor_onboarding.service;
 
 import java.time.LocalDateTime;
 
-import org.northpay_contractor_onboarding.dto.OnboardingDTO;
-
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
 import org.northpay_contractor_onboarding.model.ContactInformation;
 import org.northpay_contractor_onboarding.model.Contractor;
 import org.northpay_contractor_onboarding.repository.ContractorRepository;
@@ -31,6 +30,12 @@ public class ContractorService implements IContractorService {
                         .address(requestOnboarding.getAddress())
                         .build())
                 .build();
+                if(emailLogeado == null){
+             contractor.getContactInformation().setEmail("prueba@gmail.com");
+              }
+              else{
+                contractor.getContactInformation().setEmail(emailLogeado);
+              }
 
 
         return contractorRepository.save(contractor);

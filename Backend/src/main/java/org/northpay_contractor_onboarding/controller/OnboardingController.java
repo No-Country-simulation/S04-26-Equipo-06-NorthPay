@@ -2,9 +2,18 @@ package org.northpay_contractor_onboarding.controller;
 
 import java.util.UUID;
 
-import org.northpay_contractor_onboarding.dto.OnboardingDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingChangeRequested;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingCompleteDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
+
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingSummaryDTO;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.service.IOnboardiIngService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,16 +26,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping("/v1/onboarding")
+@RequestMapping("api/v1/onboarding")
 @AllArgsConstructor
 public class OnboardingController {
 
     private IOnboardiIngService onboardingService;
 
-    @PutMapping("{id}/dataPersonal")
+    @PutMapping("/{id}/dataPersonal")
     public ResponseEntity<OnboardingDTO> saveDatePersonal(
             @Valid @RequestBody OnboardingDTO.RequestOnboarding requestOnboarding,
             @PathVariable UUID id) {
@@ -36,13 +46,24 @@ public class OnboardingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(onboarding);
 
     }
-    @PatchMapping("{id}")
-    public ResponseEntity<OnboardingDTO> update(@PathVariable UUID id , @RequestBody Onboarding responseOnboardig){
-              
-        var onboardingDTO = onboardingService.update(id , responseOnboardig);
+
+    @PatchMapping("/{id}/approve")
+    public ResponseEntity<OnboardingDTO> approve(@PathVariable UUID id,
+            @RequestBody OnboardingApproveRequest requestOnboardig) {
+
+        var onboardingDTO = onboardingService.approve(id, requestOnboardig);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(onboardingDTO);
-    } 
+    }
+
+    @PatchMapping("/{id}/changeRequested")
+    public ResponseEntity<OnboardingDTO> changeRequested(@PathVariable UUID id,
+            @RequestBody OnboardingChangeRequested requestOnboardig) {
+
+        var onboardingDTO = onboardingService.changeRequested(id, requestOnboardig);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(onboardingDTO);
+    }
 
     @PostMapping("/createOnboarding")
     public ResponseEntity<Onboarding> createOnboarding() {
@@ -53,19 +74,47 @@ public class OnboardingController {
 
     }
 
-    @PostMapping("{id}/complete")
+    @PostMapping("/{id}/complete")
     public ResponseEntity<OnboardingDTO> completeProcess(@PathVariable UUID id) {
 
         OnboardingDTO response = onboardingService.finalizeOnboarding(id);
 
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/{id}")
-    public ResponseEntity<OnboardingDTO> getOnboarding(@PathVariable UUID id){
-          
+
+    @GetMapping("{id}")
+    public ResponseEntity<OnboardingDTO> getOnboarding(@PathVariable UUID id) {
+
         var onboarding = onboardingService.getOnboarding(id);
-        
+
         return ResponseEntity.ok(onboarding);
+    }
+
+    @GetMapping("{id}/dataPersonal")
+    public ResponseEntity<DataPersonalDTO> dataPersonal(@PathVariable UUID id) {
+
+        var onboardingDataPersonal = onboardingService.dataPersonal(id);
+
+        return ResponseEntity.ok(onboardingDataPersonal);
+
+    }
+
+    @GetMapping("admin/{id}")
+    public ResponseEntity<OnboardingCompleteDTO> getOnboardingAdmin(@PathVariable UUID id) {
+
+        var onboarding = onboardingService.getOnboardinAmin(id);
+
+        return ResponseEntity.ok(onboarding);
+    }
+
+    @GetMapping("admin/list")
+    public ResponseEntity<Page<OnboardingSummaryDTO>> getAllOnboarding(
+            @PageableDefault(page = 0, size = 5) Pageable pageable) {
+
+        Page<OnboardingSummaryDTO> onboarding = onboardingService.getAll(pageable);
+
+        return ResponseEntity.ok(onboarding);
+
     }
 
 }
