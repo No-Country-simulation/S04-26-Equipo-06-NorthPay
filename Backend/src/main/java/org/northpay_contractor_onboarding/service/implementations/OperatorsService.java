@@ -69,6 +69,8 @@ public class OperatorsService implements IOperatorsService {
   }
 
   // method for dev env
+  @Override
+  @Deprecated
   public Onboarding createOnboardingTEST() {
     Contractor contractor = contractorRepository.save(Contractor.builder()
       .firstName("fN")

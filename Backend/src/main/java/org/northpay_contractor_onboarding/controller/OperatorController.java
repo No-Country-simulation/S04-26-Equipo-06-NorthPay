@@ -5,7 +5,7 @@ import java.util.List;
 import org.northpay_contractor_onboarding.dto.operatorDtos.OperatorDTO;
 import org.northpay_contractor_onboarding.dto.operatorDtos.OperatorRegistrationDTO;
 import org.northpay_contractor_onboarding.model.Onboarding;
-import org.northpay_contractor_onboarding.service.implementations.OperatorsService;
+import org.northpay_contractor_onboarding.service.interfaces.IOperatorsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 @RequiredArgsConstructor
 public class OperatorController {
-  private final OperatorsService operatorsService;
+  private final IOperatorsService operatorsService;
 
   @GetMapping()
   @PreAuthorize("hasAnyRole('OPERATOR')")
@@ -53,8 +53,11 @@ public class OperatorController {
   
   @Deprecated
   @PostMapping("/dev/onboarding")
-  @SecurityRequirement(name = "bearerAuth")
-  @Operation(description = "FOR TESTING ONLY", deprecated = true)
+  @Operation(
+    description = "FOR TESTING ONLY",
+    deprecated = true,
+    security = @SecurityRequirement(name = "bearerAuth")
+  )
   public Onboarding postMethodName() {
     return operatorsService.createOnboardingTEST();
   }
