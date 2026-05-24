@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   public void configureMessageBroker(MessageBrokerRegistry registry) {
     // prefijo que por convención general se usa topic,
     // se usa para referirse a los canales a los que los receptores, ej frontend, estarán conectados
-    registry.enableSimpleBroker(TopicRoutes.prefix);
+    registry.enableSimpleBroker(TopicRoutes.PREFIX);
 
     // este sería el prefijo para mandar datos al back desde el front (MessageMapping del controller)
     registry.setApplicationDestinationPrefixes("/api/v1/ws");
