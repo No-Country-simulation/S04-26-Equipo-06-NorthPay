@@ -1,4 +1,4 @@
-package org.northpay_contractor_onboarding.dto.operatorDtos;
+package org.northpay_contractor_onboarding.dto.onboardingDtos;
 
 import org.hibernate.boot.internal.Abstract;
 import org.northpay_contractor_onboarding.enums.OnboardingStatus;
@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 @Getter
 @Setter
 @Builder
@@ -16,11 +17,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class RegistroHistoryDTO {
 
-    private Onboarding onboarding ;
+    private Onboarding onboarding;
     private OnboardingStatus oldStatus;
     private OnboardingStatus newStatus;
-            private String changedBy ;
-            private String reason;
-             private String type;
-    
+    private String changedBy;
+    private String reason;
+    private String type;
+
 }

@@ -1,4 +1,4 @@
-package org.northpay_contractor_onboarding.dto;
+package org.northpay_contractor_onboarding.dto.onboardingDtos;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,13 +21,12 @@ public class OnboardingDTO {
     private UUID id;
     private Integer currentStep;
     private OnboardingStatus status;
-   
 
     public OnboardingDTO(Onboarding onboarding) {
-        this.id = onboarding.getId();
         this.currentStep = onboarding.getCurrentStep();
+        this.id = onboarding.getId();
         this.status = onboarding.getStatus();
-       
+
     }
 
     @Getter
@@ -51,9 +50,5 @@ public class OnboardingDTO {
         @NotBlank(message = "La dirección es obligatoria")
         @Size(max = 255)
         private String address;
-
     }
-
-   
-
 }

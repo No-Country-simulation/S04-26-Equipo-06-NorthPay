@@ -1,19 +1,26 @@
 package org.northpay_contractor_onboarding.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
-import org.northpay_contractor_onboarding.dto.OnboardingDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingApproveRequest;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingChangeRequested;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingCompleteDTO;
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
 
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingSummaryDTO;
+import org.northpay_contractor_onboarding.enums.ApprovalStatus;
 import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 import org.northpay_contractor_onboarding.exception.NotFoundException;
 
 import org.northpay_contractor_onboarding.model.Contractor;
 import org.northpay_contractor_onboarding.model.Onboarding;
 
-
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +32,7 @@ import lombok.AllArgsConstructor;
 public class OnboardingService implements IOnboardiIngService {
 
         private final OnboardingRepository onboardingRepository;
-
+        private final AuditLogService auditLogService;
         private final IContractorService ioContractorService;
         private final StateMachineService stateMachineService;
 
@@ -33,28 +40,25 @@ public class OnboardingService implements IOnboardiIngService {
         @Transactional
         public OnboardingDTO savePersonalData(UUID id, OnboardingDTO.RequestOnboarding requestOnboarding) {
 
-                String emailLogueado = SecurityContextHolder.getContext()
-                                .getAuthentication()
-                                .getName();
-
                 var onboarding = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("Onboarding not found"));
-                                
-                 //TODO lo comento hasta que podamos hacer pruebas con el token de invitacion
-                //if (!onboarding.getContractor().getEmail().contains(emailLogueado)) {
-                  //      throw new org.northpay_contractor_onboarding.exception.AccessDeniedException("No tenés permiso para editar este onboarding.", HttpStatus.FORBIDDEN);
-                //}
 
-                Contractor dbContractor = ioContractorService.saveContractor(requestOnboarding, requestOnboarding.getEmail());
+                // TODO lo comento hasta que podamos hacer pruebas con el token de invitacion
+                // if (!onboarding.getContractor().getEmail().contains(emailLogueado)) {
+                // throw new
+                // org.northpay_contractor_onboarding.exception.AccessDeniedException("No tenés
+                // permiso para editar este onboarding.", HttpStatus.FORBIDDEN);
+                // }
+
+                Contractor dbContractor = ioContractorService.saveContractor(requestOnboarding,
+                                requestOnboarding.getEmail());
 
                 onboarding.setContractor(dbContractor);
                 onboarding.setUpdatedAt(LocalDateTime.now());
 
-               if (onboarding.getStatus() != OnboardingStatus.PERSONAL_DATA_COMPLETED) {
-                       stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "USER");
-                       onboarding.setCurrentStep(2);
-               }
-               
+                stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "USER");
+                onboarding.setCurrentStep(2);
+
                 var dbOnboarding = onboardingRepository.save(onboarding);
 
                 OnboardingDTO onboardingDTO = new OnboardingDTO(dbOnboarding);
@@ -99,22 +103,86 @@ public class OnboardingService implements IOnboardiIngService {
                 var onboarding = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("Onboarding not found"));
 
-                          onboarding.setStatus(responseOnboarding.getStatus());
+                onboarding.setStatus(responseOnboarding.getStatus());
 
-                 var dbOnboardin = onboardingRepository.save(onboarding);
+                var dbOnboardin = onboardingRepository.save(onboarding);
 
-                return new OnboardingDTO(dbOnboardin );
+                return new OnboardingDTO(dbOnboardin);
         }
 
         @Override
         @Transactional(readOnly = true)
         public OnboardingDTO getOnboarding(UUID id) {
-                
                 var dbOnboarding = onboardingRepository.findById(id).orElseThrow(
-                        () -> new NotFoundException("no se encontro el onboarding")
-                );
+                                () -> new NotFoundException("no se encontro el onboarding"));
 
                 return new OnboardingDTO(dbOnboarding);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public Page<OnboardingSummaryDTO> getAll(Pageable pageable) {
+
+                Page<Onboarding> onboardingPage = onboardingRepository.findAll(pageable);
+
+                if (onboardingPage == null) {
+                        throw new NotFoundException("there are no onboardings");
+                }
+
+                Page<OnboardingSummaryDTO> onboardingSummaryDTOs = onboardingPage.map(o -> {
+
+                        ApprovalStatus visualStatus = ApprovalStatus.fromOnboardingStatus(o.getStatus());
+                        return new OnboardingSummaryDTO(visualStatus, o);
+                });
+
+                return onboardingSummaryDTOs;
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public DataPersonalDTO dataPersonal(UUID id) {
+
+                var dbOnboarding = onboardingRepository.findById(id).orElseThrow(
+                                () -> new NotFoundException("onboarding not found"));
+
+                var contactInformation = dbOnboarding.getContractor().getContactInformation();
+
+                return new DataPersonalDTO(dbOnboarding, contactInformation);
+
+        }
+
+        @Override
+        public OnboardingDTO approve(UUID id, OnboardingApproveRequest responseOnboardig) {
+
+                var onboardingDb = onboardingRepository.findById(id).orElseThrow(
+                                () -> new NotFoundException("onboarding not found"));
+
+                stateMachineService.transitionTo(onboardingDb, OnboardingStatus.CHANGES_REQUESTED, "Operator");
+
+                return new OnboardingDTO(onboardingDb);
+        }
+
+        @Override
+        public OnboardingDTO changeRequested(UUID id, OnboardingChangeRequested responseOnboardig) {
+
+                var onboardingDb = onboardingRepository.findById(id).orElseThrow(
+                                () -> new NotFoundException("onboarding not found"));
+
+                stateMachineService.transitionTo(onboardingDb, OnboardingStatus.CHANGES_REQUESTED, "Operator");
+
+                return new OnboardingDTO(onboardingDb);
+        }
+
+        @Override
+        public OnboardingCompleteDTO getOnboardinAmin(UUID id) {
+
+                var onboardinFull = onboardingRepository.findById(id).orElseThrow(
+                                () -> new NotFoundException("onboarding not found"));
+
+                auditLogService.logAction("Operator", "VIEW_ONBOARDING_DETAIL", "Onboarding ID: " + id, "SUCCESS");
+
+                return new OnboardingCompleteDTO(onboardinFull);
+
         }
 
 }
