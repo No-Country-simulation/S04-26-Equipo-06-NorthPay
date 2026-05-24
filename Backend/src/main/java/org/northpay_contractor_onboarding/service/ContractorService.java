@@ -1,6 +1,7 @@
 package org.northpay_contractor_onboarding.service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
 import org.northpay_contractor_onboarding.model.ContactInformation;
@@ -17,9 +18,10 @@ public class ContractorService implements IContractorService {
     private final ContractorRepository contractorRepository;
 
     @Override
-    public Contractor saveContractor(OnboardingDTO.RequestOnboarding requestOnboarding , String emailLogeado) {
+    public Contractor saveContractor(UUID contractorId, OnboardingDTO.RequestOnboarding requestOnboarding , String emailLogeado) {
               
         Contractor contractor = Contractor.builder()
+                .id(contractorId) // si esto es nulo se crearía una nueva entidad, sino actualizaría la ya existente
                 .firstName(requestOnboarding.getName())
                 .lastName(requestOnboarding.getLastName())
                 .createdAt(LocalDateTime.now())

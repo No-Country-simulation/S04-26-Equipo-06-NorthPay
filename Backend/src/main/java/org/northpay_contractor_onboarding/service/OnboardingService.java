@@ -1,7 +1,6 @@
 package org.northpay_contractor_onboarding.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 import org.northpay_contractor_onboarding.dto.onboardingDtos.DataPersonalDTO;
@@ -19,9 +18,10 @@ import org.northpay_contractor_onboarding.model.Contractor;
 import org.northpay_contractor_onboarding.model.Onboarding;
 
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
+import org.northpay_contractor_onboarding.security.authentication.AuthenticatedUserDetails;
+import org.northpay_contractor_onboarding.service.interfaces.IInvitationTokenService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +34,7 @@ public class OnboardingService implements IOnboardiIngService {
         private final OnboardingRepository onboardingRepository;
         private final AuditLogService auditLogService;
         private final IContractorService ioContractorService;
+        private final IInvitationTokenService invitationTokenService;
         private final StateMachineService stateMachineService;
         private final MetricsService metricsService;
 
@@ -51,8 +52,10 @@ public class OnboardingService implements IOnboardiIngService {
                 // permiso para editar este onboarding.", HttpStatus.FORBIDDEN);
                 // }
 
-                Contractor dbContractor = ioContractorService.saveContractor(requestOnboarding,
-                                requestOnboarding.getEmail());
+                Contractor dbContractor = ioContractorService.saveContractor(
+                        onboarding.getContractor().getId(),
+                        requestOnboarding,
+                        requestOnboarding.getEmail());
 
                 onboarding.setContractor(dbContractor);
                 onboarding.setUpdatedAt(LocalDateTime.now());
@@ -70,13 +73,23 @@ public class OnboardingService implements IOnboardiIngService {
 
         @Override
         @Transactional
-        public Onboarding create() {
+        public Onboarding create(String destinedContractorEmail, AuthenticatedUserDetails loggedOperator) {
 
-                Onboarding onboarding = Onboarding.builder().createdAt(LocalDateTime.now())
-                                .currentStep(1).status(OnboardingStatus.INVITED).build();
+                Onboarding onboarding = Onboarding.builder()
+                        .createdAt(LocalDateTime.now())
+                        .currentStep(1)
+                        .status(OnboardingStatus.INVITED)
+                        .contractor(ioContractorService.saveContractor(
+                                null,
+                                OnboardingDTO.RequestOnboarding.builder().email(destinedContractorEmail).build(),
+                                destinedContractorEmail
+                        ))
+                .build();
 
                 var dbOnboarding = onboardingRepository.save(onboarding);
+
                 metricsService.emitMetricsEvent();
+                invitationTokenService.create(dbOnboarding.getId(), destinedContractorEmail, loggedOperator);
 
                 return dbOnboarding;
         }
