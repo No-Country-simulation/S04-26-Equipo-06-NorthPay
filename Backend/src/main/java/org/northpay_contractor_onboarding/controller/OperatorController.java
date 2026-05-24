@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
@@ -31,27 +33,31 @@ public class OperatorController {
 
   @GetMapping()
   @PreAuthorize("hasAnyRole('OPERATOR')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<List<OperatorDTO>> getAll() {
     return new ResponseEntity<>(operatorsService.getAll(), HttpStatus.OK);
   }
   
-  @PreAuthorize("hasAnyRole('OPERATOR')")
   @GetMapping("/{email}")
+  @PreAuthorize("hasAnyRole('OPERATOR')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<OperatorDTO> getByEmail(@Email @PathVariable String email) {
     return new ResponseEntity<>(operatorsService.getByEmail(email), HttpStatus.OK);
   }
   
   @PostMapping("/register")
+  @ResponseStatus(code = HttpStatus.CREATED)
   public ResponseEntity<OperatorDTO> register(@Valid @RequestBody OperatorRegistrationDTO dto) {
     return new ResponseEntity<>(operatorsService.create(dto), HttpStatus.CREATED);
   }
-
+  
+  @Deprecated
   @PostMapping("/dev/onboarding")
-  @Operation(description = "FOR TESTING ONLY")
+  @SecurityRequirement(name = "bearerAuth")
+  @Operation(description = "FOR TESTING ONLY", deprecated = true)
   public Onboarding postMethodName() {
     return operatorsService.createOnboardingTEST();
   }
-  
 
   // TODO: método para cambiar contraseña, cambiar mail, y borrar
 }

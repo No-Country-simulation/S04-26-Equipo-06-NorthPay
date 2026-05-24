@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +40,16 @@ public class InvitationTokenController {
 
   @GetMapping("")
   @PreAuthorize("hasAnyRole('OPERATOR')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<List<InvitationTokenDTO>> getAll() {
     return new ResponseEntity<>(invTokenService.getAll(), HttpStatus.OK);
   }
   
   @PostMapping("")
   @PreAuthorize("hasAnyRole('OPERATOR')")
+  @Operation(summary = "Create an invitation token manually")
+  @SecurityRequirement(name = "bearerAuth")
+  @ResponseStatus(code = HttpStatus.CREATED)
   public ResponseEntity<InvitationTokenDTO> createToken(
     @NotBlank @RequestParam String onboardingId,
     @NotBlank @RequestParam String contractorEmail,
@@ -57,8 +63,9 @@ public class InvitationTokenController {
 
   @PatchMapping("/first-time-use")
   @Operation(
-    description = "Use token to create a contractor password. Use `/invitation-token/login` after"
+    description = "When the contractor uses token for first time and create a password. Use `/invitation-token/login` after"
   )
+  @ResponseStatus(code = HttpStatus.NO_CONTENT)
   public ResponseEntity<Void> useTokenForFirstTime(@Valid @RequestBody InvTokenContractorSignUp data) {
     invTokenService.useTokenForFirstTime(data);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -71,6 +78,8 @@ public class InvitationTokenController {
   
   @PatchMapping("/invalidate")
   @PreAuthorize("hasAnyRole('OPERATOR')")
+  @ResponseStatus(code = HttpStatus.NO_CONTENT)
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<Void> invalidate(@NotBlank String tokenUrl) {
     invTokenService.invalidateToken(tokenUrl);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
