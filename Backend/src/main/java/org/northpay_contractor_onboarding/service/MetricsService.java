@@ -27,7 +27,7 @@ public class MetricsService {
     if (!onboardingRepository.findAll().isEmpty()) {
       List<InvTokenActivationTimesDTO> times = invitationTokenRepository.getOnbCreationAndActivationTimes();
       long sumOfDifferencesBetweenTimes = times.isEmpty() ? 0 : times.stream().mapToLong(
-        dto -> Duration.between(dto.getCreatedAt(), dto.getActivatedAt()).getSeconds()
+        dto -> (dto.getActivatedAt() != null && dto.getCreatedAt() != null) ? Duration.between(dto.getCreatedAt(), dto.getActivatedAt()).getSeconds() : 0
       ).sum();
 
       averageTime = times.isEmpty() ? 0 : Math.round(sumOfDifferencesBetweenTimes / times.size());
