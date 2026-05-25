@@ -23,6 +23,7 @@ public interface IInvitationTokenService {
    * @return true si el token está expirado
    */
   boolean checkInvitationTokenUrlIsExpired(String tokenUrl);
+  InvitationTokenDTO validateAndGetTokenData(String tokenUrl);
   void useTokenForFirstTime(@Valid InvTokenContractorSignUp data);
   TokenDTO login(@Valid ContractorLoginDTO loginInfo);
   void invalidateToken(@NotBlank String tokenUrl);

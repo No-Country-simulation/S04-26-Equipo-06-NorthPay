@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -58,6 +59,11 @@ public class InvitationTokenController {
   public ResponseEntity<Void> useTokenForFirstTime(@Valid @RequestBody InvTokenContractorSignUp data) {
     invTokenService.useTokenForFirstTime(data);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @GetMapping("/validate/{tokenUrl}")
+  public ResponseEntity<InvitationTokenDTO> validateToken(@PathVariable String tokenUrl) {
+    return new ResponseEntity<>(invTokenService.validateAndGetTokenData(tokenUrl), HttpStatus.OK);
   }
 
   @PostMapping("/login")
