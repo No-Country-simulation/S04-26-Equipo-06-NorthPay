@@ -138,7 +138,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                 "status", 403,
                 "error", "Forbidden",
-                "message", "You do not have permission to access this resource"));
+                "message", "You do not have permission to access this resource. " + ex.getMessage()));
     }
 
     /*
