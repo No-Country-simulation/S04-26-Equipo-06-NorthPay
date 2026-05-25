@@ -100,7 +100,7 @@ public class InvitationTokenService implements IInvitationTokenService {
   public boolean checkInvitationTokenUrlIsExpired(String tokenUrl) {
     return invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
       () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
-    ).getExpiresAt().isAfter(LocalDateTime.now());
+    ).getExpiresAt().isBefore(LocalDateTime.now());
   }
 
   @Override
@@ -133,7 +133,7 @@ public class InvitationTokenService implements IInvitationTokenService {
       .build();
   }
   public boolean checkInvitationTokenUrlIsExpired(InvitationTokens invToken) {
-    return invToken.getExpiresAt().isAfter(LocalDateTime.now());
+    return invToken.getExpiresAt().isBefore(LocalDateTime.now());
   }
 
   @Override
@@ -144,9 +144,8 @@ public class InvitationTokenService implements IInvitationTokenService {
 
     // Validaciones ==========================
     if (this.checkInvitationTokenUrlIsExpired(referredToken) && !referredToken.getUsed()) {
-      invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build());
-      // registro de intento
-      throw new ExpiredJwtException(null, null, "Expired token");
+      invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build()); // registro de intento
+      throw new ExpiredJwtException(null, null, "Expired invitation token.");
     }
     if (referredToken.getUsed() && referredToken.getIsValid()) 
       throw new AlreadyExistsException("This invitation token has already been used, cannot set a new password. Use login endpoint instead"); 
@@ -158,9 +157,10 @@ public class InvitationTokenService implements IInvitationTokenService {
     invitationTokenRepository.save(referredToken.toBuilder()
       .used(true)
       .password(encoder.encode(info.password()))
+      .activatedAt(LocalDateTime.now())
     .build());
 
-    // debe mandar mail de que se creó contraseña y registrar esto en la base de datos
+    // TODO: debe mandar mail de que se creó contraseña y registrar esto en la base de datos
   }
 
   @Override
@@ -179,7 +179,7 @@ public class InvitationTokenService implements IInvitationTokenService {
       ContractorNameDTO relatedContractorName = invitationTokenRepository.getRelatedContractorNameByTokenUrl(loginInfo.tokenUrl());
       String contractorFullName = relatedContractorName.firstName() + " " + relatedContractorName.lastName();
 
-      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(referredToken.getContractorEmail(), "", "", Roles.CONTRACTOR);
+      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(referredToken.getContractorEmail(), contractorFullName, "", Roles.CONTRACTOR);
       PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
         newAuthData,
         null

@@ -1,4 +1,4 @@
-package org.northpay_contractor_onboarding.security;
+package org.northpay_contractor_onboarding.configs;
 
 import java.util.List;
 

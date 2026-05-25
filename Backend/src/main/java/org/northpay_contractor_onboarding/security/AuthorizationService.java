@@ -20,6 +20,10 @@ import lombok.RequiredArgsConstructor;
 public class AuthorizationService {
   private final OnboardingRepository onboardingRepository;
 
+  public boolean contractorCanChangeOnboarding(UUID onboardingId) throws AccessDeniedException {
+    return this.contractorCanChangeOnboarding(onboardingId.toString());
+  }
+
   // Se fija si el contractor que está logueado, dentro del token JWT, está asociado al Onboarding objetivo del cambio
   public boolean contractorCanChangeOnboarding(String onboardingId) throws AccessDeniedException {
     Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();

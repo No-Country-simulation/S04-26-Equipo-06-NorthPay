@@ -101,7 +101,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
                 "status", 401,
                 "error", "Unauthorized",
-                "message", "Token expired")
+                "message", ex.getMessage().isBlank() ? "Token expired" : ex.getMessage())
         );
     }
 
@@ -138,7 +138,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                 "status", 403,
                 "error", "Forbidden",
-                "message", "You do not have permission to access this resource"));
+                "message", "You do not have permission to access this resource. " + ex.getMessage()));
     }
 
     /*
@@ -212,6 +212,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                 "status", 500,
                 "error", "Internal Server Error",
-                "message", ex.getMessage()));
+                "message", ex.getMessage(),
+                "stackTrace", ex.getStackTrace()));
     }
 }
