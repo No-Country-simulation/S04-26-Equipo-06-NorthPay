@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -75,6 +76,11 @@ public class InvitationTokenController {
   public ResponseEntity<Void> useTokenForFirstTime(@Valid @RequestBody InvTokenContractorSignUp data) {
     invTokenService.useTokenForFirstTime(data);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @GetMapping("/validate/{tokenUrl}")
+  public ResponseEntity<InvitationTokenDTO> validateToken(@PathVariable String tokenUrl) {
+    return new ResponseEntity<>(invTokenService.validateAndGetTokenData(tokenUrl), HttpStatus.OK);
   }
 
   @PostMapping("/login")
