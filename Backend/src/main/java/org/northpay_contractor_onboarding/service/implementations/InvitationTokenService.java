@@ -31,9 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -96,17 +93,12 @@ public class InvitationTokenService implements IInvitationTokenService {
   @Override
   public boolean checkInvitationTokenUrlIsExpired(String tokenUrl) {
     return invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
-<<<<<<< Updated upstream
-      () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
-    ).getExpiresAt().isAfter(LocalDateTime.now());
-=======
         () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))).getExpiresAt()
         .isBefore(LocalDateTime.now());
->>>>>>> Stashed changes
   }
 
   public boolean checkInvitationTokenUrlIsExpired(InvitationTokens invToken) {
-    return invToken.getExpiresAt().isAfter(LocalDateTime.now());
+    return invToken.getExpiresAt().isBefore(LocalDateTime.now());
   }
 
   @Override
@@ -115,14 +107,8 @@ public class InvitationTokenService implements IInvitationTokenService {
         () -> new NotFoundException("Invitation with token '%s' not found".formatted(info.tokenUrl())));
 
     if (this.checkInvitationTokenUrlIsExpired(referredToken) && !referredToken.getUsed()) {
-<<<<<<< Updated upstream
-      invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build());
-      // registro de intento
-      throw new ExpiredJwtException(null, null, "Expired token");
-=======
       invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build()); 
       throw new ExpiredJwtException(null, null, "Expired invitation token.");
->>>>>>> Stashed changes
     }
     if (referredToken.getUsed() && referredToken.getIsValid())
       throw new AlreadyExistsException(
@@ -132,18 +118,10 @@ public class InvitationTokenService implements IInvitationTokenService {
       throw new BadCredentialsException("Passwords aren't the same");
 
     invitationTokenRepository.save(referredToken.toBuilder()
-<<<<<<< Updated upstream
-      .used(true)
-      .password(encoder.encode(info.password()))
-    .build());
-
-    // debe mandar mail de que se creó contraseña y registrar esto en la base de datos
-=======
         .used(true)
         .password(encoder.encode(info.password()))
         .activatedAt(LocalDateTime.now())
         .build());
->>>>>>> Stashed changes
   }
 
   @Override
@@ -162,12 +140,8 @@ public class InvitationTokenService implements IInvitationTokenService {
           .getRelatedContractorNameByTokenUrl(loginInfo.tokenUrl());
       String contractorFullName = relatedContractorName.firstName() + " " + relatedContractorName.lastName();
 
-<<<<<<< Updated upstream
-      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(referredToken.getContractorEmail(), "", "", Roles.CONTRACTOR);
-=======
       AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(referredToken.getContractorEmail(),
           contractorFullName, "", Roles.CONTRACTOR);
->>>>>>> Stashed changes
       PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
           newAuthData,
           null);
