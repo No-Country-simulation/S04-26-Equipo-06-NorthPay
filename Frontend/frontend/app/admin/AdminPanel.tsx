@@ -13,9 +13,30 @@ type Contractor = {
 };
 
 const initialContractors: Contractor[] = [
-  { id: "C-001", name: "Maria Perez", email: "maria.perez@example.com", stage: "Document upload", status: "pending", lastUpdate: "1h ago" },
-  { id: "C-002", name: "Jorge Gomez", email: "jorge.gomez@example.com", stage: "Contract signing", status: "needs-correction", lastUpdate: "2h ago" },
-  { id: "C-003", name: "Lucia Fernandez", email: "lucia.fernandez@example.com", stage: "Payment method", status: "approved", lastUpdate: "4h ago" },
+  {
+    id: "C-001",
+    name: "Maria Perez",
+    email: "maria.perez@example.com",
+    stage: "Document upload",
+    status: "pending",
+    lastUpdate: "1h ago",
+  },
+  {
+    id: "C-002",
+    name: "Jorge Gomez",
+    email: "jorge.gomez@example.com",
+    stage: "Contract signing",
+    status: "needs-correction",
+    lastUpdate: "2h ago",
+  },
+  {
+    id: "C-003",
+    name: "Lucia Fernandez",
+    email: "lucia.fernandez@example.com",
+    stage: "Payment method",
+    status: "approved",
+    lastUpdate: "4h ago",
+  },
 ];
 
 const statusStyles: Record<string, string> = {
@@ -32,15 +53,6 @@ export default function AdminPanel() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
   const [inviteResult, setInviteResult] = useState<string | null>(null);
-  const [copySuccess, setCopySuccess] = useState(false);
-
-  const handleCopy = () => {
-    if (inviteResult && !inviteResult.includes("Error")) {
-      navigator.clipboard.writeText(inviteResult);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    }
-  };
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,82 +60,56 @@ export default function AdminPanel() {
 
     setIsInviting(true);
     setInviteResult(null);
-    setCopySuccess(false);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
     try {
-      // Step 1: Create the onboarding process
-      let onboardingResponse;
-      try {
-        onboardingResponse = await fetch(`${API_URL}/api/v1/onboarding/createOnboarding`, {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("returnedToken="))
+        ?.split("=")[1];
+
+      const response = await fetch(
+        `${API_URL}/api/v1/onboarding/createOnboarding?destinedContractorEmail=${encodeURIComponent(inviteEmail)}`,
+        {
           method: "POST",
-        });
-      } catch (err) {
-        // If fetch fails completely (e.g. ERR_EMPTY_RESPONSE, CORS, or backend down), trigger mock
-        throw new Error("MOCK_FALLBACK");
+          headers: {
+            Authorization: `Bearer ${token ? decodeURIComponent(token) : ""}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to create onboarding and send invitation.");
       }
 
-      if (!onboardingResponse.ok) {
-        throw new Error("Failed to create onboarding process.");
-      }
-
-      const onboardingData = await onboardingResponse.json();
-      const onboardingId = onboardingData.id;
-
-      // Step 2: Create the invitation token
-      let tokenResponse;
-      try {
-        tokenResponse = await fetch(
-          `${API_URL}/api/v1/invitation-token?onboardingId=${onboardingId}&contractorEmail=${encodeURIComponent(inviteEmail)}`,
-          {
-            method: "POST",
-          }
-        );
-      } catch (err) {
-        throw new Error("MOCK_FALLBACK");
-      }
-
-      if (!tokenResponse.ok) {
-        // Fallback for UI testing if the backend blocks us due to missing auth/operator token
-        if (tokenResponse.status === 401 || tokenResponse.status === 403 || tokenResponse.status === 404) {
-          throw new Error("MOCK_FALLBACK");
-        }
-        throw new Error("Failed to generate token.");
-      }
-
-      const tokenData = await tokenResponse.json();
-      const generatedTokenUrl = tokenData.tokenUrl;
-      const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-      
-      setInviteResult(`${origin}/invite/${generatedTokenUrl}`);
+      setInviteResult(
+        "Invitation created! The contractor will receive an email with their access link.",
+      );
       setInviteEmail("");
     } catch (error) {
-      if (error instanceof Error && error.message === "MOCK_FALLBACK") {
-        // Mock fallback to allow frontend testing even without operator authentication
-        const mockToken = "mock-" + Math.random().toString(36).substring(2, 10);
-        const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
-        // Pass only the email for the mock fallback display
-        setInviteResult(`${origin}/invite/${mockToken}?email=${encodeURIComponent(inviteEmail)}`);
-        setInviteEmail("");
-      } else {
-        setInviteResult(`Error: ${error instanceof Error ? error.message : "Something went wrong"}`);
-      }
+      setInviteResult(
+        `Error: ${error instanceof Error ? error.message : "Something went wrong"}`,
+      );
     } finally {
       setIsInviting(false);
     }
   };
 
   const activeCount = useMemo(
-    () => contractors.filter((contractor) => contractor.status !== "approved").length,
-    [contractors]
+    () =>
+      contractors.filter((contractor) => contractor.status !== "approved")
+        .length,
+    [contractors],
   );
 
   const updateStatus = (id: string, status: Contractor["status"]) => {
     setContractors((current) =>
       current.map((contractor) =>
-        contractor.id === id ? { ...contractor, status, lastUpdate: "Now" } : contractor
-      )
+        contractor.id === id
+          ? { ...contractor, status, lastUpdate: "Now" }
+          : contractor,
+      ),
     );
     setNotification(`Status updated to ${status.replace("-", " ")} for ${id}.`);
     setTimeout(() => setNotification(""), 3500);
@@ -135,30 +121,58 @@ export default function AdminPanel() {
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/30">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Operations</p>
-              <h1 className="mt-3 text-3xl font-semibold text-slate-900">Admin Panel</h1>
-              <p className="mt-2 text-slate-600">Monitor the status of each onboarding and send automatic notifications to the contractor.</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
+                Operations
+              </p>
+              <h1 className="mt-3 text-3xl font-semibold text-slate-900">
+                Admin Panel
+              </h1>
+              <p className="mt-2 text-slate-600">
+                Monitor the status of each onboarding and send automatic
+                notifications to the contractor.
+              </p>
             </div>
-            <Link href="/onboarding" className="inline-flex items-center rounded-3xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700">
+            <Link
+              href="/onboarding"
+              className="inline-flex items-center rounded-3xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
+            >
               View onboarding
             </Link>
           </div>
           <div className="mt-6 rounded-3xl bg-slate-50 p-5 text-sm text-slate-700">
             <p>
-              Active contractors: <span className="font-semibold text-slate-900">{activeCount}</span>
+              Active contractors:{" "}
+              <span className="font-semibold text-slate-900">
+                {activeCount}
+              </span>
             </p>
-            <p className="mt-1">Each status change is reflected immediately and notifies the contractor.</p>
+            <p className="mt-1">
+              Each status change is reflected immediately and notifies the
+              contractor.
+            </p>
           </div>
         </div>
 
         {/* --- INVITE NEW CONTRACTOR SECTION --- */}
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-900">Invite New Contractor</h2>
-          <p className="mt-1 text-sm text-slate-500">Send an onboarding invitation link directly to their email.</p>
-          
-          <form onSubmit={handleInvite} className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
+          <h2 className="text-xl font-semibold text-slate-900">
+            Invite New Contractor
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Send an onboarding invitation link directly to their email.
+          </p>
+
+          <form
+            onSubmit={handleInvite}
+            className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end"
+          >
             <div className="flex-1">
-              <label htmlFor="invite-email" className="block text-sm font-medium text-slate-700">Contractor Email</label>
+              <label
+                htmlFor="invite-email"
+                className="block text-sm font-medium text-slate-700"
+              >
+                Contractor Email
+              </label>
               <input
                 id="invite-email"
                 type="email"
@@ -180,30 +194,14 @@ export default function AdminPanel() {
           </form>
 
           {inviteResult && (
-            <div className={`mt-6 rounded-2xl p-4 text-sm ${inviteResult.includes("Error") ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-800 border border-emerald-200"}`}>
+            <div
+              className={`mt-6 rounded-2xl p-4 text-sm ${inviteResult.includes("Error") ? "bg-rose-50 text-rose-700 border border-rose-200" : "bg-emerald-50 text-emerald-800 border border-emerald-200"}`}
+            >
               {inviteResult.includes("Error") ? (
                 <p>{inviteResult}</p>
               ) : (
                 <div className="flex flex-col gap-2">
-                  <p className="font-semibold">Invitation generated successfully!</p>
-                  <p>The system is configured to send the email. You can also copy the link directly:</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <code className="bg-white px-3 py-2 rounded border border-emerald-200 text-xs text-slate-800 w-full overflow-x-auto">
-                      {inviteResult}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={handleCopy}
-                      className="shrink-0 flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-700 transition px-3 py-2 text-white text-sm font-medium min-w-[70px]"
-                      title="Copy to clipboard"
-                    >
-                      {copySuccess ? (
-                        "Copied!"
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" strokeLinecap="round" strokeLinejoin="round" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      )}
-                    </button>
-                  </div>
+                  <p className="font-semibold">{inviteResult}</p>
                 </div>
               )}
             </div>
@@ -232,18 +230,28 @@ export default function AdminPanel() {
             <tbody className="divide-y divide-slate-200 bg-white">
               {contractors.map((contractor) => (
                 <tr key={contractor.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-5 font-semibold text-slate-900">{contractor.id}</td>
+                  <td className="px-6 py-5 font-semibold text-slate-900">
+                    {contractor.id}
+                  </td>
                   <td className="px-6 py-5">
-                    <p className="font-semibold text-slate-900">{contractor.name}</p>
+                    <p className="font-semibold text-slate-900">
+                      {contractor.name}
+                    </p>
                     <p className="text-slate-500">{contractor.email}</p>
                   </td>
-                  <td className="px-6 py-5 text-slate-600">{contractor.stage}</td>
+                  <td className="px-6 py-5 text-slate-600">
+                    {contractor.stage}
+                  </td>
                   <td className="px-6 py-5">
-                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[contractor.status]}`}>
+                    <span
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[contractor.status]}`}
+                    >
                       {contractor.status.replace("-", " ")}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-slate-500">{contractor.lastUpdate}</td>
+                  <td className="px-6 py-5 text-slate-500">
+                    {contractor.lastUpdate}
+                  </td>
                   <td className="px-6 py-5 space-x-2">
                     <button
                       type="button"
@@ -254,7 +262,9 @@ export default function AdminPanel() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => updateStatus(contractor.id, "needs-correction")}
+                      onClick={() =>
+                        updateStatus(contractor.id, "needs-correction")
+                      }
                       className="rounded-2xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-rose-700"
                     >
                       Correct

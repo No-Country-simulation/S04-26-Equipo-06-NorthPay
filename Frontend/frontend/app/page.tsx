@@ -19,7 +19,7 @@ export default function Home() {
               <Link href="/onboarding" className="inline-flex items-center justify-center rounded-3xl bg-sky-600 px-6 py-4 text-sm font-semibold text-white shadow-lg shadow-sky-600/20 transition hover:bg-sky-700">
                 Start onboarding
               </Link>
-              <Link href="/admin" className="inline-flex items-center justify-center rounded-3xl border border-slate-300 bg-white px-6 py-4 text-sm font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-50">
+              <Link href="/login" className="inline-flex items-center justify-center rounded-3xl border border-slate-300 bg-white px-6 py-4 text-sm font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-50">
                 Operations Panel
               </Link>
             </div>
