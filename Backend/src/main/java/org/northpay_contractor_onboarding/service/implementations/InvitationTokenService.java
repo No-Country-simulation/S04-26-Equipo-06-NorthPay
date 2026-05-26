@@ -150,7 +150,6 @@ public class InvitationTokenService implements IInvitationTokenService {
     invitationTokenRepository.save(referredToken.toBuilder()
         .used(true)
         .password(encoder.encode(info.password()))
-        .activatedAt(LocalDateTime.now())
         .build());
   }
 
