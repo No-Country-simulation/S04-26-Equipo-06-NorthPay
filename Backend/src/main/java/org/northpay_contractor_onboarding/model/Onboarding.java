@@ -61,5 +61,7 @@ public class Onboarding {
   private List<Document> documents;
   @OneToMany(mappedBy = "onboarding", cascade = CascadeType.ALL)
   private List<OnboardingHistory> history;
+  @OneToMany(mappedBy = "onboarding", cascade = CascadeType.ALL)
+  private List<OnboardingReview> requestOnboardings;
 
 }
