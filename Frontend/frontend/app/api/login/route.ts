@@ -7,13 +7,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid credentials." }, { status: 400 });
   }
 
-  // Replace this validation with your real auth logic.
-  if (!body.email || !body.password) {
-    return NextResponse.json({ message: "Email and password are required." }, { status: 400 });
-  }
+  try {
+    // For server-side fetches inside Docker, we must use the container name 'backend' instead of 'localhost'
+    const BACKEND_INTERNAL_URL = process.env.BACKEND_INTERNAL_URL || "http://backend:8080";
+    const backendResponse = await fetch(`${BACKEND_INTERNAL_URL}/api/v1/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: body.email, password: body.password }),
+    });
 
-  return NextResponse.json({
-    returnedToken: "demo-token",
-    userAuthenticated: body.email || "martin123",
-  });
+    if (!backendResponse.ok) {
+      return NextResponse.json({ message: "Invalid credentials." }, { status: 401 });
+    }
+
+    const data = await backendResponse.json();
+    return NextResponse.json(data);
+  } catch (error) {
+    return NextResponse.json({ message: "Backend connection failed." }, { status: 500 });
+  }
 }
