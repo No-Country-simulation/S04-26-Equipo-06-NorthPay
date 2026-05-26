@@ -39,6 +39,8 @@ public class InvitationTokens {
   @CreationTimestamp
   private Instant createdAt;
   @Column(updatable = false)
+  private LocalDateTime activatedAt;
+  @Column(updatable = false)
   private LocalDateTime expiresAt;
 
   @OneToOne

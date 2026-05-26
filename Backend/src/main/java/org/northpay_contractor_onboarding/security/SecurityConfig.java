@@ -27,7 +27,7 @@ public class SecurityConfig {
     http.
       authorizeHttpRequests(req -> req
         .requestMatchers("/api/**").permitAll()
-        .anyRequest().permitAll() // TODO: esto es temporal, definir las rutas según los roles
+        .anyRequest().permitAll()
       )
 
       .formLogin(formLogin -> formLogin.disable()) // Deshabilita la redirección al GET /login default de spring
