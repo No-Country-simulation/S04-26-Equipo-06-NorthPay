@@ -25,4 +25,6 @@ public interface IInvitationTokenService {
   TokenDTO login(@Valid ContractorLoginDTO loginInfo);
 
   void invalidateToken(@NotBlank String tokenUrl);
+
+  InvitationTokenDTO validateAndGetTokenData(String tokenUrl);
 }

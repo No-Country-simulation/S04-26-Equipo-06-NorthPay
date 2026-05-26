@@ -102,6 +102,36 @@ public class InvitationTokenService implements IInvitationTokenService {
   }
 
   @Override
+  public InvitationTokenDTO validateAndGetTokenData(String tokenUrl) {
+    InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
+      () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
+    );
+
+    if (referredToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+      if (referredToken.getIsValid()) {
+          invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build());
+      }
+      throw new ExpiredJwtException(null, null, "Expired token");
+    }
+
+    if (referredToken.getUsed() || !referredToken.getIsValid()) {
+      throw new ExpiredJwtException(null, null, "Expired or already used token");
+    }
+
+    return InvitationTokenDTO.builder()
+      .id(referredToken.getId().toString())
+      .tokenUrl(referredToken.getTokenUrl())
+      .used(referredToken.getUsed())
+      .isValid(referredToken.getIsValid())
+      .contractorEmail(referredToken.getContractorEmail())
+      .expiresAt(referredToken.getExpiresAt().toString())
+      .createdAt(referredToken.getCreatedAt().toString())
+      .createdBy(referredToken.getOperatorEmail().toString())
+      .onboardingId(referredToken.getOnboarding().getId().toString())
+      .build();
+  }
+
+  @Override
   public void useTokenForFirstTime(InvTokenContractorSignUp info) {
     InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(info.tokenUrl()).orElseThrow(
         () -> new NotFoundException("Invitation with token '%s' not found".formatted(info.tokenUrl())));
