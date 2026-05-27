@@ -12,6 +12,10 @@ public enum OnboardingStatus {
     APPROVED;
 
     public boolean canTransitionTo(OnboardingStatus nextState) {
+       if (this == nextState) {
+            return true; 
+        }
+        
         return switch (this) {
             case INVITED -> nextState == PERSONAL_DATA_COMPLETED;
             case PERSONAL_DATA_COMPLETED -> nextState == DOCUMENTS_UPLOADED;

@@ -56,7 +56,12 @@ public class OnboardingService implements IOnboardiIngService {
                 onboarding.setUpdatedAt(LocalDateTime.now());
 
                 stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "USER");
-                onboarding.setCurrentStep(2);
+                
+                if(onboarding.getCurrentStep() == 1){
+                       onboarding.setCurrentStep(2);
+                }
+
+            
 
                 var dbOnboarding = onboardingRepository.save(onboarding);
 
@@ -196,9 +201,8 @@ public class OnboardingService implements IOnboardiIngService {
                 review.setOnboarding(onboardingDb);
                 onboardingReviewRepository.save(review);
                 stateMachineService.transitionTo(onboardingDb, OnboardingStatus.CHANGES_REQUESTED, "Operator");
-                    
 
-                 var dbOnboarding = onboardingRepository.save(onboardingDb);
+                var dbOnboarding = onboardingRepository.save(onboardingDb);
 
                 // TODO disparamos notificacion
 
