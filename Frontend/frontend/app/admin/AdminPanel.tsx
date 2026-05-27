@@ -83,9 +83,34 @@ export default function AdminPanel() {
         throw new Error("Failed to create onboarding and send invitation.");
       }
 
-      setInviteResult(
-        "Invitation created! The contractor will receive an email with their access link.",
-      );
+      // Fetch all tokens to find the one we just created (since createOnboarding doesn't return it)
+      try {
+        const tokensResponse = await fetch(`${API_URL}/api/v1/invitation-token`, {
+          headers: { Authorization: `Bearer ${token ? decodeURIComponent(token) : ""}` }
+        });
+        if (tokensResponse.ok) {
+          const tokens = await tokensResponse.json();
+          // Find the newest token for this email
+          const newestToken = tokens
+            .filter((t: any) => t.contractorEmail === inviteEmail)
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+          
+          if (newestToken) {
+            const inviteUrl = `http://localhost:3000/invite/${newestToken.tokenUrl}`;
+            setInviteResult(
+              `Invitation created! Testing link: ${inviteUrl}`
+            );
+          } else {
+            setInviteResult("Invitation created! The contractor will receive an email with their access link.");
+          }
+        } else {
+          setInviteResult("Invitation created! The contractor will receive an email with their access link.");
+        }
+      } catch (err) {
+        console.error("Failed to fetch tokens for logging", err);
+        setInviteResult("Invitation created! The contractor will receive an email with their access link.");
+      }
+
       setInviteEmail("");
     } catch (error) {
       setInviteResult(
