@@ -46,4 +46,4 @@ jobs:
           SPRING_DATASOURCE_USERNAME: user_test
           SPRING_DATASOURCE_PASSWORD: password_test
           JWT_SECRET: test_secret_key_123456789
-          RESEND_API_KEY: test_resend_key 
+          RESEND_API_KEY: test_resend_key
