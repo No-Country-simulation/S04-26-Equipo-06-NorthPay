@@ -81,7 +81,7 @@ public class InvitationTokenService implements IInvitationTokenService {
     .build());
 
     // envío de mail
-    mailSenderService.sendInvitationEmail("nahuel.gg.dev@gmail.com"/* contractorEmail */, newInvToken.getTokenUrl(), newInvToken.getExpiresAt().toString());
+    mailSenderService.sendInvitationEmail(contractorEmail, newInvToken.getTokenUrl(), newInvToken.getExpiresAt().toString());
 
     return InvitationTokenDTO.builder()
       .id(newInvToken.getId().toString())
@@ -159,7 +159,7 @@ public class InvitationTokenService implements IInvitationTokenService {
     .build());
 
     // envío de mail
-    mailSenderService.sendContractorPasswordCreatedEmail("nahuel.gg.dev@gmail.com"/* referredToken.getContractorEmail() */);
+    mailSenderService.sendContractorPasswordCreatedEmail(referredToken.getContractorEmail());
   }
 
   @Override
