@@ -37,4 +37,14 @@ public class MailSenderService {
     ResendRequestDTO request = ResendRequestDTO.contractorPasswordSetEmail(to);
     return sendEmail(request);
   }
+
+  public String sendOnboardingApprovedEmail(String to) {
+    ResendRequestDTO request = ResendRequestDTO.onboardingApprovedEmail(to);
+    return sendEmail(request);
+  }
+
+  public String sendOnboardingNeedCorrectionsEmail(String to) {
+    ResendRequestDTO request = ResendRequestDTO.onboardingNeedCorrectionsEmail(to);
+    return sendEmail(request);
+  }
 }
