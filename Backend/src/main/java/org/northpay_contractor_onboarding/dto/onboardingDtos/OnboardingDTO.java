@@ -10,12 +10,16 @@ import org.northpay_contractor_onboarding.model.Onboarding;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class OnboardingDTO {
 
     private UUID id;
@@ -32,6 +36,8 @@ public class OnboardingDTO {
     @Getter
     @Setter
     @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class RequestOnboarding {
         @NotBlank(message = "El nombre completo es obligatorio")
         @Size(min = 3, max = 100)
