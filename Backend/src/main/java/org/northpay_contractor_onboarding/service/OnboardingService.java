@@ -33,12 +33,13 @@ import lombok.AllArgsConstructor;
 public class OnboardingService implements IOnboardiIngService {
 
         private final OnboardingRepository onboardingRepository;
+        private final OnboardingReviewRepository onboardingReviewRepository;
         private final AuditLogService auditLogService;
         private final IContractorService ioContractorService;
         private final IInvitationTokenService invitationTokenService;
         private final StateMachineService stateMachineService;
         private final MetricsService metricsService;
-        private final OnboardingReviewRepository onboardingReviewRepository;
+        private final MailSenderService mailSenderService;
 
         @Override
         @Transactional
@@ -178,7 +179,7 @@ public class OnboardingService implements IOnboardiIngService {
                 stateMachineService.transitionTo(onboardingDb, OnboardingStatus.APPROVED, "Operator");
                 var dbOnboarding = onboardingRepository.save(onboardingDb);
 
-                // TODO disparamos notificacion
+                mailSenderService.sendOnboardingApprovedEmail(onboardingDb.getContractor().getEmail());
 
                 return new OnboardingDTO(dbOnboarding);
         }
@@ -200,7 +201,7 @@ public class OnboardingService implements IOnboardiIngService {
 
                  var dbOnboarding = onboardingRepository.save(onboardingDb);
 
-                // TODO disparamos notificacion
+                mailSenderService.sendOnboardingNeedCorrectionsEmail(onboardingDb.getContractor().getEmail());
 
                 return new OnboardingDTO(dbOnboarding);
         }
