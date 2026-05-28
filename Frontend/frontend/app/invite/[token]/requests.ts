@@ -8,7 +8,7 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080
 export const getToken = async (
   setStatus: (value: SetStateAction<StatusType>) => void,
   token: string,
-  setPreloadedData: (value: SetStateAction<{ email: string; name: string; onboardingId?: string } | null>) => void
+  setPreloadedData: (value: SetStateAction<{ email: string; onboardingId?: string } | null>) => void
 ) => {
   setStatus("loading");
   try {
@@ -22,7 +22,6 @@ export const getToken = async (
       const urlParams = new URLSearchParams(window.location.search);
       const emailParam = urlParams.get("email") || "mock@example.com";
       setPreloadedData({
-        name: "Guest",
         email: emailParam,
       });
       return setStatus("success");
@@ -61,7 +60,6 @@ export const getToken = async (
     
     // Default success mock so you can proceed to /onboarding
     setPreloadedData({
-      name: "Guest",
       email: "mock@example.com",
     });
     setStatus("success");
