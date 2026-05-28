@@ -4,6 +4,7 @@ import { OnboardingData } from "../../app/onboarding/types";
 interface Props {
   data: OnboardingData;
   onChange: (field: keyof OnboardingData, value: string) => void;
+  onboardingId: string;
 }
 
 interface UploadState {
@@ -15,12 +16,12 @@ interface UploadState {
 
 const REQUIRED_DOC = {
   id: "id_passport",
-  label: "National ID or Passport",
+  label: "National ID Card",
   description:
-    "Please upload a clear scan or photo of both sides of your official identity card or the main page of your passport.",
+    "Please upload a clear scan or photo of both sides of your official identity card",
 };
 
-export default function DocumentUpload({ data, onChange }: Props) {
+export default function DocumentUpload({ data, onChange, onboardingId }: Props) {
   const [upload, setUpload] = useState<UploadState>({
     status: "pending",
     progress: 0,
@@ -66,18 +67,6 @@ export default function DocumentUpload({ data, onChange }: Props) {
     }
 
     intervalRef.current = setInterval(() => {
-      // Simula una conexón caida al 60% solo en el primer intento
-      if (!hasErroredOnce && currentProgress >= 50 && currentProgress < 65) {
-        clearInterval(intervalRef.current!);
-        setHasErroredOnce(true);
-        setUpload((prev) => ({
-          ...prev,
-          status: "error",
-          errorMsg:
-            "Connection interrupted. Please verify your network and retry.",
-        }));
-        return;
-      }
 
       const increment = Math.floor(Math.random() * 15) + 8; // 8% to 23%
       currentProgress = Math.min(currentProgress + increment, 100);
@@ -95,7 +84,7 @@ export default function DocumentUpload({ data, onChange }: Props) {
           const formData = new FormData();
           formData.append("file", file);
           // ID real temporal para probar el guardado en base de datos
-          formData.append("onboardingId", "207e30f3-5bce-40b0-8c1a-9233b653f7c0"); 
+          formData.append("onboardingId", onboardingId); 
 
           try {
             const response = await fetch("http://localhost:8080/api/v1/document/upload", {
@@ -203,6 +192,35 @@ export default function DocumentUpload({ data, onChange }: Props) {
           verification.
         </p>
       </header>
+
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Document Type
+          </label>
+          <select
+            value={data.documentType || ""}
+            onChange={(e) => onChange("documentType", e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition hover:border-slate-300 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+          >
+            <option value="" disabled>Select document type</option>
+            <option value="national_id">National ID</option>
+            <option value="passport">Passport</option>
+          </select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Document Number (National ID/Passport)
+          </label>
+          <input
+            type="text"
+            value={data.dniNumber || ""}
+            onChange={(e) => onChange("dniNumber", e.target.value)}
+            placeholder="e.g. 12345678"
+            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm transition hover:border-slate-300 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+          />
+        </div>
+      </div>
 
       {/* Document Card */}
       <div

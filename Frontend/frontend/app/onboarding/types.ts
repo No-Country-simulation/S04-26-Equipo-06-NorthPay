@@ -3,7 +3,11 @@ export type OnboardingData = {
   lastName: string;
   email: string;
   phone: string;
+  country: string;
+  address: string;
   documentName: string;
+  documentType: string;
+  dniNumber: string;
   contractAccepted: boolean;
   paymentMethod: string;
   paymentDetails: {

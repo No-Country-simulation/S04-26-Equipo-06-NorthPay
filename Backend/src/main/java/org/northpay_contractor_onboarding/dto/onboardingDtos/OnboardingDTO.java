@@ -1,4 +1,4 @@
-package org.northpay_contractor_onboarding.dto;
+package org.northpay_contractor_onboarding.dto.onboardingDtos;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -10,28 +10,36 @@ import org.northpay_contractor_onboarding.model.Onboarding;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class OnboardingDTO {
 
     private UUID id;
     private Integer currentStep;
     private OnboardingStatus status;
-   
 
     public OnboardingDTO(Onboarding onboarding) {
-        this.id = onboarding.getId();
         this.currentStep = onboarding.getCurrentStep();
+        this.id = onboarding.getId();
         this.status = onboarding.getStatus();
-       
+
     }
 
     @Getter
     @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class RequestOnboarding {
         @NotBlank(message = "El nombre completo es obligatorio")
         @Size(min = 3, max = 100)
@@ -51,9 +59,5 @@ public class OnboardingDTO {
         @NotBlank(message = "La dirección es obligatoria")
         @Size(max = 255)
         private String address;
-
     }
-
-   
-
 }

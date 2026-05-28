@@ -12,13 +12,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #e2e8f0;
-  }
-}
-
 body {
   min-height: 100vh;
   margin: 0;
@@ -33,4 +26,24 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+/* Force dark text on all form inputs regardless of inherited color or dark mode */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+  color: #0f172a !important;
+}
+
+/* Override Chrome autofill background to match bg-white */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #0f172a !important;
 }

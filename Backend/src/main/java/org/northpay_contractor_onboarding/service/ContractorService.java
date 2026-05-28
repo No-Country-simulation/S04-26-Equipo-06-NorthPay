@@ -1,9 +1,9 @@
 package org.northpay_contractor_onboarding.service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
-import org.northpay_contractor_onboarding.dto.OnboardingDTO;
-
+import org.northpay_contractor_onboarding.dto.onboardingDtos.OnboardingDTO;
 import org.northpay_contractor_onboarding.model.ContactInformation;
 import org.northpay_contractor_onboarding.model.Contractor;
 import org.northpay_contractor_onboarding.repository.ContractorRepository;
@@ -18,21 +18,25 @@ public class ContractorService implements IContractorService {
     private final ContractorRepository contractorRepository;
 
     @Override
-    public Contractor saveContractor(OnboardingDTO.RequestOnboarding requestOnboarding , String emialLogeado) {
+    public Contractor saveContractor(UUID contractorId, OnboardingDTO.RequestOnboarding requestOnboarding , String emailLogeado) {
               
-        
         Contractor contractor = Contractor.builder()
+                .id(contractorId) // si esto es nulo se crearía una nueva entidad, sino actualizaría la ya existente
                 .firstName(requestOnboarding.getName())
                 .lastName(requestOnboarding.getLastName())
                 .createdAt(LocalDateTime.now())
                 .contactInformation(ContactInformation.builder()
+                        .email(requestOnboarding.getEmail())
                         .phoneNumber(requestOnboarding.getPhoneNumber())
                         .country(requestOnboarding.getCountry())
                         .address(requestOnboarding.getAddress())
                         .build())
                 .build();
-                if(emialLogeado == null){
+                if(emailLogeado == null){
              contractor.getContactInformation().setEmail("prueba@gmail.com");
+              }
+              else{
+                contractor.getContactInformation().setEmail(emailLogeado);
               }
 
 

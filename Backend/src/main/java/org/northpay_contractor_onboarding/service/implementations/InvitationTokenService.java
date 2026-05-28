@@ -13,6 +13,8 @@ import org.northpay_contractor_onboarding.dto.jwt.JwtClaimsDTO;
 import org.northpay_contractor_onboarding.dto.jwt.TokenDTO;
 import org.northpay_contractor_onboarding.enums.JwtTypes;
 import org.northpay_contractor_onboarding.enums.Roles;
+import org.northpay_contractor_onboarding.exception.AlreadyExistsException;
+import org.northpay_contractor_onboarding.exception.InvalidTokenException;
 import org.northpay_contractor_onboarding.exception.NotFoundException;
 import org.northpay_contractor_onboarding.model.InvitationTokens;
 import org.northpay_contractor_onboarding.model.Onboarding;
@@ -20,15 +22,16 @@ import org.northpay_contractor_onboarding.repository.InvitationTokenRepository;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.northpay_contractor_onboarding.security.authentication.AuthenticatedUserDetails;
 import org.northpay_contractor_onboarding.security.jwt.JwtService;
+import org.northpay_contractor_onboarding.service.MailSenderService;
 import org.northpay_contractor_onboarding.service.interfaces.IInvitationTokenService;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -37,9 +40,10 @@ import lombok.RequiredArgsConstructor;
 public class InvitationTokenService implements IInvitationTokenService {
   private final InvitationTokenRepository invitationTokenRepository;
   private final OnboardingRepository onboardingRepository;
-  
+
   private final BCryptPasswordEncoder encoder;
   private final JwtService jwtService;
+  private final MailSenderService mailSenderService;
 
   @Override
   public List<InvitationTokenDTO> getAll() {
@@ -59,7 +63,7 @@ public class InvitationTokenService implements IInvitationTokenService {
   }
 
   @Override
-  public InvitationTokenDTO create(@NotNull UUID onboardingId, @NotNull String contractorEmail, AuthenticatedUserDetails loggedOperator) {
+  public InvitationTokenDTO create(UUID onboardingId, String contractorEmail, AuthenticatedUserDetails loggedOperator) {
     Onboarding onboardingFather = onboardingRepository.findById(onboardingId).orElseThrow(
       () -> new NotFoundException("Onboarding with id '%s' is not found".formatted(onboardingId.toString()))
     );
@@ -76,7 +80,8 @@ public class InvitationTokenService implements IInvitationTokenService {
       .onboarding(onboardingFather)
     .build());
 
-    // si el paso anterior es exitoso acá se llamaría al servicio que manda el mail al contratista con el enlace
+    // envío de mail
+    mailSenderService.sendInvitationEmail(contractorEmail, newInvToken.getTokenUrl(), newInvToken.getExpiresAt().toString());
 
     return InvitationTokenDTO.builder()
       .id(newInvToken.getId().toString())
@@ -94,69 +99,106 @@ public class InvitationTokenService implements IInvitationTokenService {
   @Override
   public boolean checkInvitationTokenUrlIsExpired(String tokenUrl) {
     return invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
-      () -> new NotFoundException("")
-    ).getExpiresAt().isAfter(LocalDateTime.now());
-  }
-  public boolean checkInvitationTokenUrlIsExpired(InvitationTokens invToken) {
-    return invToken.getExpiresAt().isAfter(LocalDateTime.now());
+      () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
+    ).getExpiresAt().isBefore(LocalDateTime.now());
   }
 
   @Override
-  public void useTokenForFirstTime(@Valid InvTokenContractorSignUp info) {
+  public InvitationTokenDTO validateAndGetTokenData(String tokenUrl) {
+    InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
+      () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
+    );
+
+    if (referredToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+      if (referredToken.getIsValid()) {
+          invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build());
+      }
+      throw new ExpiredJwtException(null, null, "Expired token");
+    }
+
+    if (referredToken.getUsed() || !referredToken.getIsValid()) {
+      throw new ExpiredJwtException(null, null, "Expired or already used token");
+    }
+
+    return InvitationTokenDTO.builder()
+      .id(referredToken.getId().toString())
+      .tokenUrl(referredToken.getTokenUrl())
+      .used(referredToken.getUsed())
+      .isValid(referredToken.getIsValid())
+      .contractorEmail(referredToken.getContractorEmail())
+      .expiresAt(referredToken.getExpiresAt().toString())
+      .createdAt(referredToken.getCreatedAt().toString())
+      .createdBy(referredToken.getOperatorEmail().toString())
+      .onboardingId(referredToken.getOnboarding().getId().toString())
+      .build();
+  }
+  public boolean checkInvitationTokenUrlIsExpired(InvitationTokens invToken) {
+    return invToken.getExpiresAt().isBefore(LocalDateTime.now());
+  }
+
+  @Override
+  public void useTokenForFirstTime(InvTokenContractorSignUp info) {
     InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(info.tokenUrl()).orElseThrow(
       () -> new NotFoundException("Invitation with token '%s' not found".formatted(info.tokenUrl()))
     );
 
-    // Validaciones ==========================
-    if (!this.checkInvitationTokenUrlIsExpired(referredToken) && !referredToken.getUsed()) {
-      invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build());
-      // registro de intento
-      throw new RuntimeException(""); // TODO: arrojar 403
+    if (this.checkInvitationTokenUrlIsExpired(referredToken) && !referredToken.getUsed()) {
+      invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build()); // registro de intento
+      throw new ExpiredJwtException(null, null, "Expired invitation token.");
     }
-    if (referredToken.getUsed() && referredToken.getIsValid()) 
-      throw new RuntimeException("This invitation token has already been used, cannot set a new password. Use login endpoint instead"); 
-      // debe arrojar status 400 que corresponda a que el endpoint no es el correcto
-    if (!info.password().equals(info.passwordConfirmation()))
-      throw new RuntimeException("Passwords aren't the same"); // status 406 0 422?
+    if (referredToken.getUsed() && referredToken.getIsValid())
+      throw new AlreadyExistsException("This invitation token has already been used, cannot set a new password. Use login endpoint instead");
 
-    // Seteo de password y cambio de estado ================
+    if (!info.password().equals(info.passwordConfirmation()))
+      throw new BadCredentialsException("Passwords aren't the same");
+
     invitationTokenRepository.save(referredToken.toBuilder()
       .used(true)
       .password(encoder.encode(info.password()))
+      .activatedAt(LocalDateTime.now())
     .build());
 
-    // debe mandar mail de que se creó contraseña y registrar esto en la base de datos
+    // envío de mail
+    mailSenderService.sendContractorPasswordCreatedEmail(referredToken.getContractorEmail());
   }
 
   @Override
-  public TokenDTO login(@Valid ContractorLoginDTO loginInfo) {
+  public TokenDTO login(ContractorLoginDTO loginInfo) {
     InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(loginInfo.tokenUrl()).orElseThrow(
       () -> new NotFoundException("Invitation with token '%s' not found".formatted(loginInfo.tokenUrl()))
     );
 
     if (!referredToken.getIsValid())
-      throw new RuntimeException("This token has been invalidated"); // debe arrojar 403 Forbidden
+      throw new InvalidTokenException("This token has been invalidated");
 
-    if (!encoder.matches(loginInfo.password(), referredToken.getPassword())) 
-      throw new RuntimeException("Wrong password"); // status 403
+    if (!encoder.matches(loginInfo.password(), referredToken.getPassword()))
+      throw new BadCredentialsException("Wrong password");
 
     try {
       ContractorNameDTO relatedContractorName = invitationTokenRepository.getRelatedContractorNameByTokenUrl(loginInfo.tokenUrl());
       String contractorFullName = relatedContractorName.firstName() + " " + relatedContractorName.lastName();
 
-      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(referredToken.getContractorEmail(), "", "", Roles.CONTRACTOR);
-      PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(
-        newAuthData,
-        null
-      );
+      AuthenticatedUserDetails newAuthData = new AuthenticatedUserDetails(referredToken.getContractorEmail(), contractorFullName, "", Roles.CONTRACTOR);
+      PreAuthenticatedAuthenticationToken newAuth = new PreAuthenticatedAuthenticationToken(newAuthData, null);
       newAuth.setAuthenticated(true);
       SecurityContextHolder.getContext().setAuthentication(newAuth);
 
-      String token = jwtService.generateToken(new JwtClaimsDTO(contractorFullName, Roles.CONTRACTOR, JwtTypes.contractorAuth), referredToken.getContractorEmail());
+      String token = jwtService.generateToken(
+        new JwtClaimsDTO(contractorFullName, Roles.CONTRACTOR, JwtTypes.contractorAuth),
+        referredToken.getContractorEmail()
+      );
       return new TokenDTO(token, contractorFullName);
     } catch (Exception e) {
-      // TODO: handle exception
       throw new RuntimeException("Unknown error in authentication: " + e.getMessage());
     }
+  }
+
+  @Override
+  public void invalidateToken(String tokenUrl) {
+    InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
+      () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
+    );
+
+    invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build());
   }
 }

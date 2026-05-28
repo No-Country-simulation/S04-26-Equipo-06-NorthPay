@@ -10,15 +10,18 @@ import ContractSigning from "../../components/onboarding/ContractSigning";
 import PaymentMethod from "../../components/onboarding/PaymentMethod";
 import IdentityVerification from "../../components/onboarding/IdentityVerification";
 
-type PersonalDataField = "firstName" | "lastName" | "email" | "phone";
+type PersonalDataField = "firstName" | "lastName" | "email" | "phone" | "country" | "address";
 type PersonalDataErrors = Partial<Record<PersonalDataField, string>>;
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 const personalDataFields: PersonalDataField[] = [
   "firstName",
   "lastName",
   "email",
   "phone",
+  "country",
+  "address",
 ];
 
 const initialData: OnboardingData = {
@@ -26,7 +29,11 @@ const initialData: OnboardingData = {
   lastName: "",
   email: "",
   phone: "",
+  country: "",
+  address: "",
   documentName: "",
+  documentType: "",
+  dniNumber: "",
   contractAccepted: false,
   paymentMethod: "",
   paymentDetails: {
@@ -52,6 +59,7 @@ export default function OnboardingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
   const [personalDataErrors, setPersonalDataErrors] = useState<PersonalDataErrors>({});
+  const [onboardingId, setOnboardingId] = useState<string | null>(null);
 
 
 
@@ -60,12 +68,13 @@ export default function OnboardingPage() {
 
     if (saved) {
       try {
-        const { stepIndex: savedStepIndex, data: savedData, maxStepReached: savedMaxStepReached } =
+        const { stepIndex: savedStepIndex, data: savedData, maxStepReached: savedMaxStepReached, onboardingId: savedOnboardingId } =
           JSON.parse(saved);
 
         setStepIndex(savedStepIndex);
         setData(savedData);
         setMaxStepReached(savedMaxStepReached);
+        if (savedOnboardingId) setOnboardingId(savedOnboardingId);
       } catch (e) {
         console.error("Error loading onboarding progress", e);
       }
@@ -75,9 +84,9 @@ export default function OnboardingPage() {
   useEffect(() => {
     sessionStorage.setItem(
       "onboarding_progress",
-      JSON.stringify({ stepIndex, data, maxStepReached })
+      JSON.stringify({ stepIndex, data, maxStepReached, onboardingId })
     );
-  }, [stepIndex, data, maxStepReached]);
+  }, [stepIndex, data, maxStepReached, onboardingId]);
 
   useEffect(() => {
     setError("");
@@ -130,6 +139,16 @@ export default function OnboardingPage() {
       errors.phone = "Only numbers, spaces, +, parentheses, and hyphens are allowed.";
     }
 
+    if (!currentData.country.trim()) {
+      errors.country = "Country is required.";
+    }
+
+    if (!currentData.address.trim()) {
+      errors.address = "Address is required.";
+    } else if (currentData.address.trim().length > 255) {
+      errors.address = "Address must not exceed 255 characters.";
+    }
+
     return errors;
   };
 
@@ -177,6 +196,18 @@ export default function OnboardingPage() {
       }
     }
 
+    if (field === "country") {
+      if (trimmedValue.length < 2) {
+        return "Country must be at least 2 characters.";
+      }
+    }
+
+    if (field === "address") {
+      if (trimmedValue.length > 255) {
+        return "Address must not exceed 255 characters.";
+      }
+    }
+
     return "";
   };
 
@@ -205,22 +236,55 @@ export default function OnboardingPage() {
 
 
   const submitPersonalData = async () => {
-    const response = await fetch("/api/onboarding/personal-data", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-        email: data.email.trim(),
-        phone: data.phone.trim(),
-      }),
-    });
+    let currentOnboardingId = onboardingId;
+
+    // 1. Create a new onboarding if we don't have one yet
+    if (!currentOnboardingId) {
+      const createResponse = await fetch(`${API_URL}/api/v1/onboarding/createOnboarding`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!createResponse.ok) {
+        throw new Error("Could not initialize the onboarding process. Please try again.");
+      }
+
+      const newOnboarding = await createResponse.json();
+      currentOnboardingId = newOnboarding.id;
+      setOnboardingId(currentOnboardingId);
+    }
+
+    // 2. Save personal data to the onboarding
+    const response = await fetch(
+      `${API_URL}/api/v1/onboarding/${currentOnboardingId}/dataPersonal`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+          email: data.email.trim(),
+          phoneNumber: data.phone.trim(),
+          country: data.country.trim(),
+          address: data.address.trim(),
+        }),
+      }
+    );
 
     const result = await response.json().catch(() => null);
 
     if (!response.ok) {
+      if (response.status === 404 || result?.message?.includes("Onboarding not found")) {
+        setOnboardingId(null);
+        sessionStorage.removeItem("onboarding_progress");
+        throw new Error("Your session expired or was not found. Please click Continue again to restart.");
+      }
+
+      if (response.status === 400 && result && typeof result === "object") {
+        setPersonalDataErrors(result);
+        throw new Error("Please correct the validation errors in the form.");
+      }
+
       if (result?.fieldErrors) {
         setPersonalDataErrors(result.fieldErrors);
       }
@@ -444,11 +508,11 @@ export default function OnboardingPage() {
                         )}
 
                         {stepIndex === 1 && (
-                          <DocumentUpload data={data} onChange={handleChange} />
+                          <DocumentUpload data={data} onChange={handleChange} onboardingId={onboardingId || ""} />
                         )}
 
                         {stepIndex === 2 && (
-                          <ContractSigning data={data} onChange={handleChange} />
+                          <ContractSigning data={data} onChange={handleChange} onboardingId={onboardingId || ""} />
                         )}
 
                         {stepIndex === 3 && (

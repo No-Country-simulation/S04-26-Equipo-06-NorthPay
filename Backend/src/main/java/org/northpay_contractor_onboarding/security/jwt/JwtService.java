@@ -7,17 +7,15 @@ import java.util.Map;
 import java.util.function.Function;
 
 import org.northpay_contractor_onboarding.dto.jwt.JwtClaimsDTO;
+import org.northpay_contractor_onboarding.exception.InvalidTokenException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 
 @Service
 public class JwtService {
@@ -40,10 +38,8 @@ public class JwtService {
       .build()
         .parseClaimsJws(token)
       .getBody();
-    } catch (ExpiredJwtException e) {
-      throw new RuntimeException(); // TODO: cambiar las runtimes por excepciones según el status a devolver y manejar desde el controlador de excepciones
-    } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException e) {
-      throw new RuntimeException("Token inválido o mal formado: " + e.getMessage());
+    } catch (UnsupportedJwtException | IllegalArgumentException e) {
+      throw new InvalidTokenException("Invalid: " + e.getMessage());
     }
   }
 
@@ -74,7 +70,7 @@ public class JwtService {
   // Validaciones
   public boolean isTokenExpired(String token) {
     Date expirationDate = getClaim(token, claims -> claims.getExpiration());
-    if (expirationDate == null) throw new RuntimeException();
+    if (expirationDate == null) throw new InvalidTokenException("Token wasn't generated right, no expiration detected");
     return expirationDate.before(new Date());
   }
 

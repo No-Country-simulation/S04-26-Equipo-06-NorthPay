@@ -10,20 +10,21 @@ import org.northpay_contractor_onboarding.dto.jwt.TokenDTO;
 import org.northpay_contractor_onboarding.security.authentication.AuthenticatedUserDetails;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public interface IInvitationTokenService {
   List<InvitationTokenDTO> getAll();
-  InvitationTokenDTO create(@NotNull UUID onboardingId, @NotNull String contractorEmail, AuthenticatedUserDetails authOperator);
 
-  /**
-   * 
-   * @param token el token que viene desde la url
-   * @return true si el token está expirado
-   */
-  boolean checkInvitationTokenUrlIsExpired(String tokenUrl);
+  public InvitationTokenDTO create(UUID onboardingId, String contractorEmail, AuthenticatedUserDetails loggedOperator);
 
-  void useTokenForFirstTime(@Valid InvTokenContractorSignUp data);
+  public boolean checkInvitationTokenUrlIsExpired(String tokenUrl);
+
+  public void useTokenForFirstTime(InvTokenContractorSignUp info);
 
   TokenDTO login(@Valid ContractorLoginDTO loginInfo);
+
+  void invalidateToken(@NotBlank String tokenUrl);
+
+  InvitationTokenDTO validateAndGetTokenData(String tokenUrl);
 }

@@ -9,6 +9,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
@@ -49,14 +50,20 @@ export default function LoginPage() {
           Back
         </button>
 
-        <h1 className="mt-6 text-3xl font-semibold text-slate-900">Admin Login</h1>
-        <p className="mt-2 text-slate-600">Enter your credentials to continue to the admin panel.</p>
+        <h1 className="mt-6 text-3xl font-semibold text-slate-900">
+          Admin Login
+        </h1>
+        <p className="mt-2 text-slate-600">
+          Enter your credentials to continue to the admin panel.
+        </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <label className="block text-sm font-medium text-slate-700">
             Email
             <input
               type="email"
+              name="email"
+              autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500"
@@ -68,6 +75,8 @@ export default function LoginPage() {
             Password
             <input
               type="password"
+              name="password"
+              autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500"
