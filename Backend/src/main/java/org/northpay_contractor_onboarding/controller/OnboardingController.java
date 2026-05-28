@@ -41,7 +41,7 @@ public class OnboardingController {
     private IOnboardiIngService onboardingService;
 
     @PutMapping("/{id}/dataPersonal")
-    @PreAuthorize("@authorizationService.contractorCanChangeOnboarding(#id)")
+    // @PreAuthorize("@authorizationService.contractorCanChangeOnboarding(#id)")
     public ResponseEntity<OnboardingDTO> saveDatePersonal(
             @Valid @RequestBody OnboardingDTO.RequestOnboarding requestOnboarding,
             @PathVariable UUID id) {

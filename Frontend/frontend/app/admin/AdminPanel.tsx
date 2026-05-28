@@ -79,6 +79,12 @@ export default function AdminPanel() {
         },
       );
 
+      if (response.status === 401 || response.status === 403) {
+        document.cookie = 'returnedToken=; Max-Age=0; path=/';
+        window.location.href = '/login';
+        return;
+      }
+
       if (!response.ok) {
         throw new Error("Failed to create onboarding and send invitation.");
       }
@@ -157,24 +163,89 @@ export default function AdminPanel() {
                 notifications to the contractor.
               </p>
             </div>
-            <Link
-              href="/onboarding"
-              className="inline-flex items-center rounded-3xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
-            >
-              View onboarding
-            </Link>
+            <div className="flex gap-4">
+              <Link
+                href="/onboarding"
+                className="inline-flex items-center rounded-3xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+              >
+                View onboarding
+              </Link>
+              <button
+                onClick={() => {
+                  document.cookie = 'returnedToken=; Max-Age=0; path=/';
+                  window.location.href = '/login';
+                }}
+                className="inline-flex items-center rounded-3xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700"
+              >
+                Logout
+              </button>
+            </div>
           </div>
-          <div className="mt-6 rounded-3xl bg-slate-50 p-5 text-sm text-slate-700">
-            <p>
-              Active contractors:{" "}
-              <span className="font-semibold text-slate-900">
-                {activeCount}
-              </span>
-            </p>
-            <p className="mt-1">
-              Each status change is reflected immediately and notifies the
-              contractor.
-            </p>
+          {/* --- OPERATIONAL METRICS DASHBOARD (Mocked) --- */}
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">
+              Operational Metrics
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {/* Metric 1: Total Volume */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 text-sky-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-slate-500">Total Onboardings</p>
+                </div>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-slate-900">142</span>
+                  <span className="text-xs font-medium text-emerald-600">+12% this week</span>
+                </div>
+              </div>
+
+              {/* Metric 2: Average Activation Time */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-slate-500">Avg. Activation Time</p>
+                </div>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-slate-900">2.4</span>
+                  <span className="text-sm font-medium text-slate-600">days</span>
+                </div>
+              </div>
+
+              {/* Metric 3: Onboardings by Status */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0013.5 3v7.5z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-medium text-slate-500">Status Distribution</p>
+                </div>
+                <div className="mt-4 flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-600">Pending</span>
+                    <span className="font-semibold text-slate-900">45</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-600">Needs Correction</span>
+                    <span className="font-semibold text-slate-900">12</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-600">Approved</span>
+                    <span className="font-semibold text-slate-900">85</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

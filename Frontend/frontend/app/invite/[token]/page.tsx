@@ -22,7 +22,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
 
   const [status, setStatus] = useState<StatusType>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [preloadedData, setPreloadedData] = useState<{ email: string; name: string; onboardingId?: string } | null>(null);
+  const [preloadedData, setPreloadedData] = useState<{ email: string; onboardingId?: string } | null>(null);
 
   const [tokenFormData, setTokenFormData] = useState({
     password: "",
@@ -44,6 +44,8 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
       country: "",
       address: "",
       documentName: "",
+      documentType: "",
+      dniNumber: "",
       contractAccepted: false,
       paymentMethod: "",
       paymentDetails: {
@@ -226,7 +228,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
                 Ready to get started?
               </h1>
               <p className="mt-4 text-slate-600 text-lg leading-relaxed">
-                Hi <span className="font-semibold text-slate-900">{preloadedData?.name}</span>, you have been invited to join the platform. 
+                Hi! Let&apos;s get your account set up. You have been invited to join the platform. 
                 Start your onboarding process to complete your profile and begin operating with us.
               </p>
             </div>
@@ -234,10 +236,6 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
             <div className="rounded-2xl bg-slate-50 p-6 border border-slate-100">
               <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Your details</h3>
               <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-slate-500">Name</p>
-                  <p className="font-medium text-slate-900">{preloadedData?.name}</p>
-                </div>
                 <div>
                   <p className="text-xs text-slate-500">Email</p>
                   <p className="font-medium text-slate-900">{preloadedData?.email}</p>

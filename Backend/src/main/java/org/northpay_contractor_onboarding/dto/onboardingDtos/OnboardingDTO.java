@@ -15,6 +15,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Getter
 @Setter
@@ -36,8 +38,8 @@ public class OnboardingDTO {
     @Getter
     @Setter
     @Builder
-    @AllArgsConstructor
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class RequestOnboarding {
         @NotBlank(message = "El nombre completo es obligatorio")
         @Size(min = 3, max = 100)

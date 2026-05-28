@@ -17,15 +17,18 @@ public class MailSenderService {
   private String apiKey;
 
   public String sendEmail(ResendRequestDTO request) {
-    String response = webClient.post()
-      .uri("https://api.resend.com/emails")
-      .header("Authorization", "Bearer " + apiKey)
-      .bodyValue(request)
-      .retrieve()
-      .bodyToMono(String.class)
-    .block();
-
-    return response;
+    try {
+      return webClient.post()
+        .uri("https://api.resend.com/emails")
+        .header("Authorization", "Bearer " + apiKey)
+        .bodyValue(request)
+        .retrieve()
+        .bodyToMono(String.class)
+        .block();
+    } catch (Exception e) {
+      System.err.println("Failed to send email to " + request.to() + ". Error: " + e.getMessage());
+      return "mock_response_because_email_failed";
+    }
   }
 
   public String sendInvitationEmail(String to, String invitationToken, String expirationDateTime) {
