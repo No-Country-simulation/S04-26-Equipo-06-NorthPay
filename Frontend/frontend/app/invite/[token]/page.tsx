@@ -18,7 +18,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
   const { token } = use(params);
 
   const [status, setStatus] = useState<"loading" | "error" | "expired" | "not_found" | "success">("loading");
-  const [preloadedData, setPreloadedData] = useState<{ email: string; name: string; onboardingId?: string } | null>(null);
+  const [preloadedData, setPreloadedData] = useState<{ email: string; onboardingId?: string } | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -35,7 +35,6 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
         const urlParams = new URLSearchParams(window.location.search);
         const emailParam = urlParams.get("email") || "mock@example.com";
         setPreloadedData({
-          name: "Guest",
           email: emailParam,
         });
         return setStatus("success");
@@ -61,7 +60,6 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
       const data = await response.json();
       
       setPreloadedData({
-        name: "Guest",
         email: data.contractorEmail,
         onboardingId: data.onboardingId,
       });
@@ -76,9 +74,10 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
       if (token === "error") return setStatus("error");
       
       // Default success mock so you can proceed to /onboarding
+      const mockEmail = "mock@example.com";
+      
       setPreloadedData({
-        name: "Guest",
-        email: "mock@example.com",
+        email: mockEmail,
       });
       setStatus("success");
     }
@@ -213,7 +212,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
                 Ready to get started?
               </h1>
               <p className="mt-4 text-slate-600 text-lg leading-relaxed">
-                Hi <span className="font-semibold text-slate-900">{preloadedData?.name}</span>, you have been invited to join the platform. 
+                Hi! Let's get your account set up. You have been invited to join the platform. 
                 Start your onboarding process to complete your profile and begin operating with us.
               </p>
             </div>
@@ -221,10 +220,6 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
             <div className="rounded-2xl bg-slate-50 p-6 border border-slate-100">
               <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">Your details</h3>
               <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-slate-500">Name</p>
-                  <p className="font-medium text-slate-900">{preloadedData?.name}</p>
-                </div>
                 <div>
                   <p className="text-xs text-slate-500">Email</p>
                   <p className="font-medium text-slate-900">{preloadedData?.email}</p>
