@@ -23,7 +23,7 @@ public class IdentityController {
     private IdentityService identityService;
 
     
-    @PostMapping("/verify/{id}")
+    @PostMapping("/verify/{onboardingId}")
     public ResponseEntity<IdentityValidationResponseDTO> verify(
             @PathVariable UUID onboardingId,
             @RequestParam("file") MultipartFile file) { 
