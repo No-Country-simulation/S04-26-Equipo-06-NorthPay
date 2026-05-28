@@ -79,6 +79,12 @@ export default function AdminPanel() {
         },
       );
 
+      if (response.status === 401 || response.status === 403) {
+        document.cookie = 'returnedToken=; Max-Age=0; path=/';
+        window.location.href = '/login';
+        return;
+      }
+
       if (!response.ok) {
         throw new Error("Failed to create onboarding and send invitation.");
       }
@@ -157,12 +163,23 @@ export default function AdminPanel() {
                 notifications to the contractor.
               </p>
             </div>
-            <Link
-              href="/onboarding"
-              className="inline-flex items-center rounded-3xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
-            >
-              View onboarding
-            </Link>
+            <div className="flex gap-4">
+              <Link
+                href="/onboarding"
+                className="inline-flex items-center rounded-3xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+              >
+                View onboarding
+              </Link>
+              <button
+                onClick={() => {
+                  document.cookie = 'returnedToken=; Max-Age=0; path=/';
+                  window.location.href = '/login';
+                }}
+                className="inline-flex items-center rounded-3xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700"
+              >
+                Logout
+              </button>
+            </div>
           </div>
           <div className="mt-6 rounded-3xl bg-slate-50 p-5 text-sm text-slate-700">
             <p>

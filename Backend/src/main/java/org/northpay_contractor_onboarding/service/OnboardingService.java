@@ -62,8 +62,6 @@ public class OnboardingService implements IOnboardiIngService {
                        onboarding.setCurrentStep(2);
                 }
 
-            
-
                 var dbOnboarding = onboardingRepository.save(onboarding);
 
                 OnboardingDTO onboardingDTO = new OnboardingDTO(dbOnboarding);

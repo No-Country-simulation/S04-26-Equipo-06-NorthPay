@@ -32,6 +32,8 @@ const initialData: OnboardingData = {
   country: "",
   address: "",
   documentName: "",
+  documentType: "",
+  dniNumber: "",
   contractAccepted: false,
   paymentMethod: "",
   paymentDetails: {

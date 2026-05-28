@@ -6,6 +6,8 @@ export type OnboardingData = {
   country: string;
   address: string;
   documentName: string;
+  documentType: string;
+  dniNumber: string;
   contractAccepted: boolean;
   paymentMethod: string;
   paymentDetails: {

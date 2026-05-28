@@ -100,6 +100,8 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
       country: "",
       address: "",
       documentName: "",
+      documentType: "",
+      dniNumber: "",
       contractAccepted: false,
       paymentMethod: "",
       paymentDetails: {
