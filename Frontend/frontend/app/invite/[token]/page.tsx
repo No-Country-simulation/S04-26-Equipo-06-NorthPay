@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OnboardingData } from "../../onboarding/types";
+import { InvitationTokenContractorRegistration, InvitationTokenResponse } from "@/app/invite/[token]/types";
 
 const steps = [
   "Personal data",
@@ -17,12 +18,17 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
   const router = useRouter();
   const { token } = use(params);
 
-  const [status, setStatus] = useState<"loading" | "error" | "expired" | "not_found" | "success">("loading");
+  const [status, setStatus] = useState<"loading" | "error" | "expired" | "not_found" | "success" | "first_time" | "login">("loading");
   const [preloadedData, setPreloadedData] = useState<{ email: string; name: string; onboardingId?: string } | null>(null);
+
+  const [tokenFormData, setTokenFormData] = useState({
+    password: "",
+    passwordConfirmation: ""
+  });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
-  const validateToken = async () => {
+  const getToken = async () => {
     setStatus("loading");
     try {
       // Simulate edge cases based on the token string for testing purposes
@@ -49,8 +55,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
           return setStatus("not_found");
         }
         
-        // 410 Gone, 401 Unauthorized, or 403 Forbidden usually map to Expired tokens
-        if (response.status === 410 || response.status === 401 || response.status === 403) {
+        if (response.status === 401) {
           return setStatus("expired");
         }
 
@@ -58,14 +63,20 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
       }
 
       // Success from backend!
-      const data = await response.json();
+      const data: InvitationTokenResponse = await response.json();
+      if(!data.used) {
+        setStatus("first_time");
+      }
+      if (data.used) {
+        setStatus("login");
+      }
       
-      setPreloadedData({
+      /* setPreloadedData({
         name: "Guest",
         email: data.contractorEmail,
         onboardingId: data.onboardingId,
       });
-      return setStatus("success");
+      return setStatus("success"); */
 
     } catch (e) {
       // --- MOCK FALLBACK FOR FRONTEND TESTING ---
@@ -84,8 +95,62 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
     }
   };
 
+  const sendRegistrationContractorToken = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const body: InvitationTokenContractorRegistration = {
+      tokenUrl: token,
+      password: tokenFormData.password,
+      passwordConfirmation: tokenFormData.passwordConfirmation
+    };
+
+    const response = await fetch(`${API_URL}/api/v1/invitation-token/first-time-use`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const failureData = await response.json();
+      console.log(failureData);
+      throw new Error("Failed to register with token. " + failureData.message);
+    }
+
+    setStatus("login");
+  }
+
+  const sendLoginContractorToken = async (e: React.SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const body = {
+      tokenUrl: token,
+      password: tokenFormData.password,
+    };
+
+    const response = await fetch(`${API_URL}/api/v1/invitation-token/login`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const failureData = await response.json();
+      console.log(failureData);
+      throw new Error("Failed to login with token. " + failureData.message);
+    }
+
+    setStatus("success");
+
+    // de la solicitud se recibe un JWT que habría que ponerlo en el contexto de autenticación
+    // const tokenDto = await response.json();
+  }
+
   useEffect(() => {
-    validateToken();
+    getToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -160,7 +225,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
           </div>
           <h1 className="mt-6 text-2xl font-bold text-slate-900">Invitation Expired</h1>
           <p className="mt-4 text-slate-600">
-            This invitation link has expired or has already been used. You need a new invitation to proceed.
+            This invitation link has expired or has been invalidated. You need a new invitation to proceed.
           </p>
           <a
             href="mailto:support@northpay.com"
@@ -187,11 +252,82 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
             We could not connect to the server. Please check your internet connection and try again.
           </p>
           <button
-            onClick={validateToken}
+            onClick={getToken}
             className="mt-8 inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             Retry Connection
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "first_time") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6">
+        <div className="max-w-md text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sky-100">
+            <svg className="h-8 w-8 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <h1 className="mt-6 text-2xl font-bold text-slate-900">Welcome!</h1>
+          <p className="mt-4 text-slate-600">
+            You have been invited to join the platform. Please create a password to complete your registration.
+          </p>
+          <form onSubmit={sendRegistrationContractorToken} className="mt-6 space-y-4">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">Password</label>
+              <input
+                type="password"
+                id="password"
+                value={tokenFormData.password}
+                onChange={(e) => setTokenFormData({ ...tokenFormData, password: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Create Account
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "login") {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-6">
+        <div className="max-w-md text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-200">
+            <svg className="h-8 w-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h1 className="mt-6 text-2xl font-bold text-slate-900">Login to Your Account</h1>
+          <p className="mt-4 text-slate-600">
+            Please use the password you created to access your account and proceed.
+          </p>
+          <form onSubmit={sendLoginContractorToken} className="mt-6 space-y-4">
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-slate-700">Password</label>
+              <input
+                type="password"
+                value={tokenFormData.password}
+                onChange={(e) => setTokenFormData({ ...tokenFormData, password: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+            <button
+              type="submit"
+              className="inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Login
+            </button>
+          </form>
         </div>
       </div>
     );
