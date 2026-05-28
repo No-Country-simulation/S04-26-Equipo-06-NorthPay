@@ -17,6 +17,7 @@ import org.northpay_contractor_onboarding.dto.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -197,6 +198,19 @@ public class GlobalExceptionHandler {
                 "status", 405,
                 "error", "Method Not Allowed",
                 "message", ex.getMessage()));
+    }
+
+    /**
+     * =========================
+     * 502 - BAD GATEWAY (Errors from external services)
+     * =========================
+     */
+    @ExceptionHandler(WebClientResponseException.class)
+    public ResponseEntity<Map<String, Object>> handleWebClientResponseException(WebClientResponseException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
+                "status", ex.getStatusCode().value(),
+                "error", "Error from external service",
+                "message", ex.getResponseBodyAsString()));
     }
 
     /*

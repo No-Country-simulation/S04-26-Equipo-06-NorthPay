@@ -33,12 +33,13 @@ import lombok.AllArgsConstructor;
 public class OnboardingService implements IOnboardiIngService {
 
         private final OnboardingRepository onboardingRepository;
+        private final OnboardingReviewRepository onboardingReviewRepository;
         private final AuditLogService auditLogService;
         private final IContractorService ioContractorService;
         private final IInvitationTokenService invitationTokenService;
         private final StateMachineService stateMachineService;
         private final MetricsService metricsService;
-        private final OnboardingReviewRepository onboardingReviewRepository;
+        private final MailSenderService mailSenderService;
 
         @Override
         @Transactional
@@ -56,7 +57,12 @@ public class OnboardingService implements IOnboardiIngService {
                 onboarding.setUpdatedAt(LocalDateTime.now());
 
                 stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "USER");
-                onboarding.setCurrentStep(2);
+                
+                if(onboarding.getCurrentStep() == 1){
+                       onboarding.setCurrentStep(2);
+                }
+
+            
 
                 var dbOnboarding = onboardingRepository.save(onboarding);
 
@@ -178,7 +184,7 @@ public class OnboardingService implements IOnboardiIngService {
                 stateMachineService.transitionTo(onboardingDb, OnboardingStatus.APPROVED, "Operator");
                 var dbOnboarding = onboardingRepository.save(onboardingDb);
 
-                // TODO disparamos notificacion
+                mailSenderService.sendOnboardingApprovedEmail(onboardingDb.getContractor().getEmail());
 
                 return new OnboardingDTO(dbOnboarding);
         }
@@ -196,11 +202,10 @@ public class OnboardingService implements IOnboardiIngService {
                 review.setOnboarding(onboardingDb);
                 onboardingReviewRepository.save(review);
                 stateMachineService.transitionTo(onboardingDb, OnboardingStatus.CHANGES_REQUESTED, "Operator");
-                    
 
-                 var dbOnboarding = onboardingRepository.save(onboardingDb);
+                var dbOnboarding = onboardingRepository.save(onboardingDb);
 
-                // TODO disparamos notificacion
+                mailSenderService.sendOnboardingNeedCorrectionsEmail(onboardingDb.getContractor().getEmail());
 
                 return new OnboardingDTO(dbOnboarding);
         }
