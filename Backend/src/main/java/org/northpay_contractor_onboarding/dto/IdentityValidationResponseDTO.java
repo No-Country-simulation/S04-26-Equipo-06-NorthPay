@@ -1,6 +1,9 @@
 package org.northpay_contractor_onboarding.dto;
 
+import java.util.UUID;
+
 import org.northpay_contractor_onboarding.enums.OnboardingStatus;
+import org.northpay_contractor_onboarding.model.Onboarding;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +14,8 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 public class IdentityValidationResponseDTO {
-    private String status;       // "SUCCESS" o "APPROVED"
-    private double score;        // Metemos un número fake (ej: 0.98) para simular confianza de la IA
-    private String message;      // "Identidad validada con éxito (Simulado)"
+    private String status;      
+    private double score;        
+    private String message;    
+    private UUID Onboardingid;  
 }

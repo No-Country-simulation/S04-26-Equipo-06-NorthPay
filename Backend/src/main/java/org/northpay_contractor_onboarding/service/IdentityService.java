@@ -1,6 +1,5 @@
 package org.northpay_contractor_onboarding.service;
 
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,12 +27,12 @@ public class IdentityService {
 
     @Transactional(rollbackFor = Exception.class)
     public IdentityValidationResponseDTO validateIdentity(UUID onboardingId, MultipartFile selfieFile) {
-        
+
         Onboarding onboarding = onboardingRepository.findById(onboardingId)
                 .orElseThrow(() -> new NotFoundException("Onboarding not found"));
 
         try {
-         
+
             String fileName = UUID.randomUUID().toString() + "_" + selfieFile.getOriginalFilename();
             Path path = Paths.get("uploads/selfies");
             if (!Files.exists(path)) {
@@ -41,18 +40,17 @@ public class IdentityService {
             }
             Files.copy(selfieFile.getInputStream(), path.resolve(fileName));
 
-      
-            Thread.sleep(2000); 
+            Thread.sleep(2000);
 
-           
             stateMachineService.transitionTo(onboarding, OnboardingStatus.IDENTITY_VERIFICATION_COMPLETED, "SYSTEM");
-            onboardingRepository.save(onboarding);
+            var dbOnboarding = onboardingRepository.save(onboarding);
 
-         
             return IdentityValidationResponseDTO.builder()
                     .status("SUCCESS")
-                    .score(0.98) 
+                    .score(0.98)
                     .message("Identity successfully verified through NorthPay biometric system.")
+                    .Onboardingid(dbOnboarding.getId())
+
                     .build();
 
         } catch (InterruptedException e) {

@@ -51,6 +51,13 @@ public class OnboardingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(onboarding);
 
     }
+    @PatchMapping("/{id}")
+    public ResponseEntity<OnboardingDTO> update(@PathVariable UUID id , @RequestBody Onboarding onboarding){
+
+          var onboardingDTO = onboardingService.update(id, onboarding);
+        return ResponseEntity.ok(onboardingDTO);
+
+    }
 
     @PatchMapping("/{id}/approve")
     public ResponseEntity<OnboardingDTO> approve(@PathVariable UUID id,
@@ -93,8 +100,8 @@ public class OnboardingController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<OnboardingDTO> getOnboarding(@PathVariable UUID id) {
-
+    public ResponseEntity<OnboardingDTO> getOnboarding(@PathVariable UUID id ) {
+         
         var onboarding = onboardingService.getOnboarding(id);
 
         return ResponseEntity.ok(onboarding);
