@@ -3,6 +3,7 @@ package org.northpay_contractor_onboarding.service;
 import org.northpay_contractor_onboarding.dto.DocumentRequestDTO;
 import org.northpay_contractor_onboarding.dto.DocumentResponseDTO;
 import org.northpay_contractor_onboarding.enums.DocumentStatus;
+import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 import org.northpay_contractor_onboarding.model.Document;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.repository.DocumentRepository;
@@ -10,7 +11,7 @@ import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -29,6 +30,9 @@ public class DocumentService implements IDocumentService{
 
     @Autowired
     private OnboardingRepository onboardingRepository;
+
+    @Autowired
+    private StateMachineService stateMachineService;
 
     //GET ALL DOCUMENTS
     @Override
@@ -68,6 +72,7 @@ public class DocumentService implements IDocumentService{
 
     //UPLOAD DOCUMENT
     @Override
+    @Transactional
     public DocumentResponseDTO uploadDocument(MultipartFile file,
                                               UUID onboardingId) throws IOException {
         try {
@@ -110,9 +115,16 @@ public class DocumentService implements IDocumentService{
             }
             document.setVersion(document.getVersion() != null ? document.getVersion() + 1 : 1);
             document.setActiveVersion(true);
-            document.setStatus(DocumentStatus.PENDING_REVIEW);
 
+            if(onboarding.getStatus() == OnboardingStatus.PERSONAL_DATA_COMPLETED){
+              stateMachineService.transitionTo(onboarding, OnboardingStatus.DOCUMENTS_UPLOADED, "CONTRACTOR");
+            }
+            if(onboarding.getCurrentStep() == 2){
+                onboarding.setCurrentStep(3);
+            }
+          
             Document savedDocument = documentRepository.save(document);
+            onboardingRepository.save(onboarding);
 
             return mapDocumentToDTO(savedDocument);
         }catch (Exception e) {

@@ -5,12 +5,14 @@ import org.northpay_contractor_onboarding.dto.ContractResponseDTO;
 import org.northpay_contractor_onboarding.dto.SignContractRequestDTO;
 import org.northpay_contractor_onboarding.dto.UpdateContractStatusDTO;
 import org.northpay_contractor_onboarding.enums.ContractStatus;
+import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 import org.northpay_contractor_onboarding.exception.NotFoundException;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.repository.ContractRepository;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.northpay_contractor_onboarding.model.Contract;
 
 import java.security.MessageDigest;
@@ -24,6 +26,9 @@ public class ContractService implements IContractService{
 
     @Autowired
     private ContractRepository contractRepository;
+
+    @Autowired
+    private StateMachineService stateMachineService;
 
     @Autowired
     private OnboardingRepository onboardingRepository;
@@ -82,20 +87,33 @@ public class ContractService implements IContractService{
 
     //SIGN CONTRACT
     @Override
+    @Transactional
     public String signContract(UUID contractId,
                                SignContractRequestDTO requestDTO){
 
         Contract contract = contractRepository.findById(contractId).orElseThrow(
                 () -> new NotFoundException("Contract not found with ID: " + contractId)
         );
+        Onboarding onboardingDb = onboardingRepository.findById(contract.getOnboarding().getId())
+        .orElseThrow(
+                () -> new NotFoundException("onboarding not found"));
 
         contract.setSignedAt(LocalDateTime.now());
         contract.setContractHash(generateHash(contract.getContent()));
         contract.setSignatureReference(UUID.randomUUID().toString());
         contract.setSigned(true);
         contract.setSignedBy(requestDTO.getSignature());
-        contract.setStatus(ContractStatus.SIGNED);
+ 
+           if(onboardingDb.getStatus() == OnboardingStatus.DOCUMENTS_UPLOADED){
+              stateMachineService.transitionTo(onboardingDb, OnboardingStatus.CONTRACT_SIGNED,"CONTRACTOR");
+            }
+            if(onboardingDb.getCurrentStep() == 3){
+                onboardingDb.setCurrentStep(4);
+            }
+        
         contractRepository.save(contract);
+        onboardingRepository.save(onboardingDb);
+        
 
         return "Contract has been signed Successfully";
     }

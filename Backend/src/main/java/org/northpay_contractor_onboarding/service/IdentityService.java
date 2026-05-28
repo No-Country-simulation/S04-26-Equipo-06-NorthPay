@@ -41,8 +41,14 @@ public class IdentityService {
             Files.copy(selfieFile.getInputStream(), path.resolve(fileName));
 
             Thread.sleep(2000);
+            if (onboarding.getStatus() == OnboardingStatus.PAYMENT_CONFIGURED) {
+                stateMachineService.transitionTo(onboarding, OnboardingStatus.IDENTITY_VERIFICATION_COMPLETED,
+                        "CONTRACTOR");
+            }
+            if(onboarding.getCurrentStep() == 5){
+                onboarding.setCurrentStep(6);
+            }
 
-            stateMachineService.transitionTo(onboarding, OnboardingStatus.IDENTITY_VERIFICATION_COMPLETED, "SYSTEM");
             var dbOnboarding = onboardingRepository.save(onboarding);
 
             return IdentityValidationResponseDTO.builder()

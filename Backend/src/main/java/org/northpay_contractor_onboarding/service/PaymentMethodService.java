@@ -3,11 +3,13 @@ package org.northpay_contractor_onboarding.service;
 import org.northpay_contractor_onboarding.dto.PaymentMethodRequestDTO;
 import org.northpay_contractor_onboarding.dto.PaymentMethodResponseDTO;
 import org.northpay_contractor_onboarding.dto.PaymentMethodVerificationDTO;
+import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.model.PaymentMethod;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.northpay_contractor_onboarding.repository.PaymentMethodRepository;
 
 import java.time.LocalDateTime;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class PaymentMethodService implements IPaymentMethodService{
+public class PaymentMethodService implements IPaymentMethodService {
 
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
@@ -23,44 +25,45 @@ public class PaymentMethodService implements IPaymentMethodService{
     @Autowired
     private OnboardingRepository onboardingRepository;
 
-    //GET ALL PAYMENT METHODS
+    @Autowired
+    private StateMachineService stateMachineService;
+
+    // GET ALL PAYMENT METHODS
     @Override
-    public List<PaymentMethodResponseDTO> getAllPaymentMethods(){
+    public List<PaymentMethodResponseDTO> getAllPaymentMethods() {
 
         List<PaymentMethod> paymentMethods = paymentMethodRepository.findAll();
 
         return paymentMethods.stream().map(this::mapToDTO).toList();
     }
 
-    //GET PAYMENT METHOD BY ID
+    // GET PAYMENT METHOD BY ID
     @Override
-    public PaymentMethodResponseDTO getPaymentMethodById(UUID id){
+    public PaymentMethodResponseDTO getPaymentMethodById(UUID id) {
 
         PaymentMethod paymentMethod = paymentMethodRepository.findById(id).orElseThrow(
-                ()-> new IllegalArgumentException("Payment Method not found")
-        );
+                () -> new IllegalArgumentException("Payment Method not found"));
 
         return mapToDTO(paymentMethod);
     }
 
-    //GET PAYMENT METHOD BY ONBOARDING
+    // GET PAYMENT METHOD BY ONBOARDING
     @Override
-    public PaymentMethodResponseDTO getPaymentMethodByOnboardingId(UUID onboardingId){
+    public PaymentMethodResponseDTO getPaymentMethodByOnboardingId(UUID onboardingId) {
         PaymentMethod paymentMethod = paymentMethodRepository.findByOnboardingId(onboardingId);
-        if(paymentMethod == null) {
+        if (paymentMethod == null) {
             throw new IllegalArgumentException("Payment Method not found");
         }
 
         return mapToDTO(paymentMethod);
     }
 
-    //CREATE PAYMENT METHOD
+    // CREATE PAYMENT METHOD
     @Override
-    public PaymentMethodResponseDTO createPaymentMethod(PaymentMethodRequestDTO paymentMethod, UUID onboardingId){
+    public PaymentMethodResponseDTO createPaymentMethod(PaymentMethodRequestDTO paymentMethod, UUID onboardingId) {
 
         Onboarding onboarding = onboardingRepository.findById(onboardingId).orElseThrow(
-                ()-> new IllegalArgumentException("Onboarding not found")
-        );
+                () -> new IllegalArgumentException("Onboarding not found"));
 
         PaymentMethod paymentMethodEntity = PaymentMethod.builder()
                 .paymentMethodType(paymentMethod.getPaymentMethodType())
@@ -77,50 +80,59 @@ public class PaymentMethodService implements IPaymentMethodService{
         return mapToDTO(saved);
     }
 
-    //UPDATE PAYMENT METHOD
+    // UPDATE PAYMENT METHOD
     @Override
-    public PaymentMethodResponseDTO updatePaymentMethod(PaymentMethodRequestDTO paymentMethod, UUID paymentMethodId){
+    @Transactional
+    public PaymentMethodResponseDTO updatePaymentMethod(PaymentMethodRequestDTO paymentMethod, UUID paymentMethodId) {
 
         PaymentMethod paymentMethodEntity = paymentMethodRepository.findById(paymentMethodId).orElseThrow(
-                ()-> new IllegalArgumentException("Payment Method not found")
-        );
+                () -> new IllegalArgumentException("Payment Method not found"));
+        Onboarding onboardingDb = onboardingRepository.findById(paymentMethodEntity.getOnboarding().getId())
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Onboarding not found"));
 
-        if(Boolean.TRUE.equals(paymentMethodEntity.getIsPaymentVerified())){
+        if (Boolean.TRUE.equals(paymentMethodEntity.getIsPaymentVerified())) {
             throw new IllegalStateException("Payment Method is already verified");
         }
 
-        if(paymentMethod.getPlatform() != null && !paymentMethod.getPlatform().isBlank()){
+        if (paymentMethod.getPlatform() != null && !paymentMethod.getPlatform().isBlank()) {
             paymentMethodEntity.setPlatform(paymentMethod.getPlatform());
         }
 
-        if(paymentMethod.getWalletEmail() != null && !paymentMethod.getWalletEmail().isBlank()){
+        if (paymentMethod.getWalletEmail() != null && !paymentMethod.getWalletEmail().isBlank()) {
             paymentMethodEntity.setWalletEmail(
                     paymentMethod.getWalletEmail());
         }
 
-        if(paymentMethod.getNetwork() != null && !paymentMethod.getNetwork().isBlank()){
+        if (paymentMethod.getNetwork() != null && !paymentMethod.getNetwork().isBlank()) {
             paymentMethodEntity.setNetwork(
                     paymentMethod.getNetwork());
         }
 
-        if(paymentMethod.getWalletAddress() != null && !paymentMethod.getWalletAddress().isBlank()){
+        if (paymentMethod.getWalletAddress() != null && !paymentMethod.getWalletAddress().isBlank()) {
             paymentMethodEntity.setWalletAddress(
                     paymentMethod.getWalletAddress());
         }
+        if (onboardingDb.getStatus() == OnboardingStatus.CONTRACT_SIGNED) {
+            stateMachineService.transitionTo(onboardingDb, OnboardingStatus.PAYMENT_CONFIGURED, "CONTRACTOR");
+        }
+        if (onboardingDb.getCurrentStep() == 4) {
+            onboardingDb.setCurrentStep(5);
+        }
 
         PaymentMethod paymentMethodUpdated = paymentMethodRepository.save(paymentMethodEntity);
+        onboardingRepository.save(onboardingDb);
 
         return mapToDTO(paymentMethodUpdated);
     }
 
-    //VERIFY PAYMENT METHOD
+    // VERIFY PAYMENT METHOD
     @Override
     public String verifyPaymentMethod(UUID paymentMethodId,
-    PaymentMethodVerificationDTO dto){
+            PaymentMethodVerificationDTO dto) {
 
         PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId).orElseThrow(
-                ()-> new IllegalArgumentException("Payment Method not found")
-        );
+                () -> new IllegalArgumentException("Payment Method not found"));
 
         paymentMethod.setIsPaymentVerified(dto.getIsVerified());
         paymentMethod.setVerificationNotes(dto.getVerificationNotes());
@@ -130,13 +142,12 @@ public class PaymentMethodService implements IPaymentMethodService{
         return "Payment Method has been verified successfully";
     }
 
-    //REJECT PAYMENT METHOD
+    // REJECT PAYMENT METHOD
     @Override
     public String rejectPaymentMethod(UUID paymentMethodId,
-                                      PaymentMethodVerificationDTO dto){
+            PaymentMethodVerificationDTO dto) {
         PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId).orElseThrow(
-                ()-> new IllegalArgumentException("Payment Method not found")
-        );
+                () -> new IllegalArgumentException("Payment Method not found"));
 
         paymentMethod.setIsPaymentVerified(dto.getIsVerified());
         paymentMethod.setVerificationNotes(dto.getVerificationNotes());
@@ -144,14 +155,14 @@ public class PaymentMethodService implements IPaymentMethodService{
         return "Payment Method has been rejected successfully";
     }
 
-    //DELETE PAYMENT METHOD
+    // DELETE PAYMENT METHOD
     @Override
-    public void deletePaymentMethod(String id){
+    public void deletePaymentMethod(String id) {
 
     }
 
-    //MAP TO DTO
-    public PaymentMethodResponseDTO mapToDTO(PaymentMethod paymentMethod){
+    // MAP TO DTO
+    public PaymentMethodResponseDTO mapToDTO(PaymentMethod paymentMethod) {
 
         PaymentMethodResponseDTO dto = new PaymentMethodResponseDTO();
         dto.setPayment_method_id(paymentMethod.getPayment_method_id().toString());

@@ -56,7 +56,7 @@ public class OnboardingService implements IOnboardiIngService {
                 onboarding.setContractor(dbContractor);
                 onboarding.setUpdatedAt(LocalDateTime.now());
 
-                stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "USER");
+                stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "CONTRACTOR");
                 
                 if(onboarding.getCurrentStep() == 1){
                        onboarding.setCurrentStep(2);

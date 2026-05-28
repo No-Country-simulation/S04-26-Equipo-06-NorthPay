@@ -7,6 +7,6 @@ import org.northpay_contractor_onboarding.model.Contractor;
 
 public interface IContractorService {
 
-    Contractor saveContractor(UUID contractorId, OnboardingDTO.RequestOnboarding requestOnboarding , String email);
+    Contractor saveContractor(UUID contractorId, OnboardingDTO.RequestOnboarding requestOnboarding ,String email);
 
 }
