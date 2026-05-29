@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OnboardingData } from "../../onboarding/types";
 import { getToken, sendLoginContractorToken, sendRegistrationContractorToken } from "./requests";
+import { getTokenFromCookie, parseJWTPayload } from "@/utils/JWTUtils";
+import { JWTPayload } from "@/types/global";
 
 const steps = [
   "Personal data",
@@ -22,15 +24,34 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
 
   const [status, setStatus] = useState<StatusType>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [preloadedData, setPreloadedData] = useState<{ email: string; onboardingId?: string } | null>(null);
+  const [preloadedData, setPreloadedData] = useState<{ email: string; onboardingId?: string, name: string } | null>(null);
 
+  const [isDoingRequest, setIsDoingRequest] = useState(false);
   const [tokenFormData, setTokenFormData] = useState({
     password: "",
     passwordConfirmation: ""
   });
 
   useEffect(() => {
-    getToken(setStatus, token, setPreloadedData);
+    const tokenCookie = getTokenFromCookie();
+    console.log("Token from cookie:", tokenCookie);
+    if (tokenCookie) {
+      const tokenPayload = parseJWTPayload() as JWTPayload;
+      console.log("Parsed JWT payload:", tokenPayload);
+      if (tokenPayload.role === "CONTRACTOR") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPreloadedData({
+          email: tokenPayload.sub,
+          name: tokenPayload.name
+        });
+        setStatus("success");
+      } else {
+        setErrorMessage("The provided token does not have the correct role to access this page.");
+        setStatus("error");
+      }
+    } else {
+      getToken(setStatus, token, setErrorMessage);
+    }
   }, [token]);
 
   const handleStartProcess = () => {
@@ -133,7 +154,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
             {errorMessage || "We had trouble connecting to the server. Please check your internet connection and try again."}
           </p>
           <button
-            onClick={() => getToken(setStatus, token, setPreloadedData)}
+            onClick={() => getToken(setStatus, token, setErrorMessage)}
             className="mt-8 inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             Retry
@@ -156,7 +177,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
           <p className="mt-4 text-slate-600">
             You have been invited to join the platform. Please create a password to complete your registration.
           </p>
-          <form onSubmit={(e) => sendRegistrationContractorToken(e, token, tokenFormData, setStatus, setErrorMessage)} className="mt-6 space-y-4">
+          <form onSubmit={(e) => sendRegistrationContractorToken(e, token, tokenFormData, setStatus, setErrorMessage, setIsDoingRequest)} className="mt-6 space-y-4">
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700">Password</label>
               <input
@@ -167,11 +188,22 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
                 className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
+            <div>
+              <label htmlFor="passwordConfirmation" className="block text-sm font-medium text-slate-700">Confirm Password</label>
+              <input
+                type="password"                
+                id="passwordConfirmation"
+                value={tokenFormData.passwordConfirmation}
+                onChange={(e) => setTokenFormData({ ...tokenFormData, passwordConfirmation: e.target.value })}
+                className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
             <button
               type="submit"
-              className="inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 hover:cursor-pointer"
+              disabled={isDoingRequest}
             >
-              Create Account
+              {isDoingRequest ? "Creating Account..." : "Create Account"}
             </button>
           </form>
         </div>
@@ -192,7 +224,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
           <p className="mt-4 text-slate-600">
             Please use the password you created to access your account and proceed.
           </p>
-          <form onSubmit={(e) => sendLoginContractorToken(e, token, tokenFormData, setStatus, setErrorMessage)} className="mt-6 space-y-4">
+          <form onSubmit={(e) => sendLoginContractorToken(e, token, tokenFormData, setStatus, setErrorMessage, setPreloadedData, setIsDoingRequest)} className="mt-6 space-y-4">
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700">Password</label>
               <input
@@ -204,9 +236,10 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
             </div>
             <button
               type="submit"
-              className="inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 hover:cursor-pointer"
+              disabled={isDoingRequest}
             >
-              Login
+              {isDoingRequest ? "Logging in..." : "Login"}
             </button>
           </form>
         </div>

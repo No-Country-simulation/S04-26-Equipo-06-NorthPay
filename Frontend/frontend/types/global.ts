@@ -4,7 +4,7 @@ export interface ErrorResponse {
   message: string,
   timestamp: string,
   details?: Record<string, string>,
-  stackTrace?: any[]
+  stackTrace?: string[]
 }
 
 export interface JWTResponse {
