@@ -59,22 +59,29 @@ export default function OnboardingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
   const [personalDataErrors, setPersonalDataErrors] = useState<PersonalDataErrors>({});
-  const [onboardingId, setOnboardingId] = useState<string | null>(null);
+  const [onboardingId, setOnboardingId] = useState<string>("");
 
 
 
   useEffect(() => {
     const saved = sessionStorage.getItem("onboarding_progress");
+    console.log("Loaded onboarding progress:", saved);
 
     if (saved) {
       try {
         const { stepIndex: savedStepIndex, data: savedData, maxStepReached: savedMaxStepReached, onboardingId: savedOnboardingId } =
           JSON.parse(saved);
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStepIndex(savedStepIndex);
         setData(savedData);
         setMaxStepReached(savedMaxStepReached);
-        if (savedOnboardingId) setOnboardingId(savedOnboardingId);
+        console.log("Loaded onboarding ID from sessionStorage:", savedOnboardingId);
+        if (savedOnboardingId && savedOnboardingId !== "") {
+          setOnboardingId(savedOnboardingId);
+
+          
+        }
       } catch (e) {
         console.error("Error loading onboarding progress", e);
       }
@@ -82,13 +89,16 @@ export default function OnboardingPage() {
   }, []);
 
   useEffect(() => {
-    sessionStorage.setItem(
-      "onboarding_progress",
-      JSON.stringify({ stepIndex, data, maxStepReached, onboardingId })
-    );
+    if (stepIndex !== 0) {
+      sessionStorage.setItem(
+        "onboarding_progress",
+        JSON.stringify({ stepIndex, data, maxStepReached, onboardingId })
+      );
+    }
   }, [stepIndex, data, maxStepReached, onboardingId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError("");
   }, [stepIndex]);
 
@@ -239,6 +249,7 @@ export default function OnboardingPage() {
     let currentOnboardingId = onboardingId;
 
     // 1. Create a new onboarding if we don't have one yet
+    // TODO: add missing parameters
     if (!currentOnboardingId) {
       const createResponse = await fetch(`${API_URL}/api/v1/onboarding/createOnboarding`, {
         method: "POST",
@@ -390,7 +401,9 @@ export default function OnboardingPage() {
             }
           });
           if (!completeRes.ok) {
-             throw new Error("Failed to finalize onboarding.");
+            const errorData = await completeRes.json();
+            console.log(errorData)
+            throw new Error("Failed to finalize onboarding.");
           }
         }
         setSubmitted(true);
@@ -515,12 +528,12 @@ export default function OnboardingPage() {
                   </p>
 
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <Link
+                    {/* <Link
                       href="/admin"
                       className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
                     >
                       Check status in operations panel
-                    </Link>
+                    </Link> */}
 
                     <Link
                       href="/"
