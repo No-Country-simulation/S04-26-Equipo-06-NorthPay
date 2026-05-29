@@ -16,13 +16,14 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/v1/login", {
+      const response = await fetch("http://localhost:8080/api/v1/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json().catch(() => null);
+      console.log(response, data);
       setLoading(false);
 
       if (!response.ok || !data || typeof data.returnedToken !== "string") {
