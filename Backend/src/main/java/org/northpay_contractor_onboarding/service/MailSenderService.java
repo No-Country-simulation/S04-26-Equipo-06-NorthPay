@@ -1,53 +1,61 @@
 package org.northpay_contractor_onboarding.service;
 
-import org.northpay_contractor_onboarding.dto.resendMailer.ResendRequestDTO;
+import org.northpay_contractor_onboarding.dto.resendMailer.EmailRequestDTO;
+import org.northpay_contractor_onboarding.exception.CustomMailException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class MailSenderService {
+  private final JavaMailSender mailSender;
 
-  private final WebClient webClient;
+  @Value("${MAIL_USERNAME}")
+  private String mailUsername;
 
-  @Value("${RESEND_API_KEY}")
-  private String apiKey;
+  @Value("${MAIL_PASSWORD}")
+  private String mailPassword;
 
-  public String sendEmail(ResendRequestDTO request) {
+  public void sendEmail(EmailRequestDTO request) {
     try {
-      return webClient.post()
-        .uri("https://api.resend.com/emails")
-        .header("Authorization", "Bearer " + apiKey)
-        .bodyValue(request)
-        .retrieve()
-        .bodyToMono(String.class)
-        .block();
+      MimeMessage message = mailSender.createMimeMessage();
+
+      MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+      helper.setTo(request.to().get(0)); // TODO: en caso de que haya que enviar a varios destinatarios, revisar esto
+      helper.setSubject(request.subject());
+      helper.setText(request.html(), true);
+      helper.setFrom(mailUsername);
+
+      mailSender.send(message);
     } catch (Exception e) {
       System.err.println("Failed to send email to " + request.to() + ". Error: " + e.getMessage());
-      return "mock_response_because_email_failed";
+      throw new CustomMailException("Failed to send email to " + request.to() + ". Error: " + e.getMessage());
     }
   }
 
-  public String sendInvitationEmail(String to, String invitationToken, String expirationDateTime) {
-    ResendRequestDTO request = ResendRequestDTO.invitationEmail(to, invitationToken, expirationDateTime);
-    return sendEmail(request);
+  public void sendInvitationEmail(String to, String invitationToken, String expirationDateTime) {
+    EmailRequestDTO request = EmailRequestDTO.invitationEmail(to, invitationToken, expirationDateTime);
+    sendEmail(request);
   }
 
-  public String sendContractorPasswordCreatedEmail(String to) {
-    ResendRequestDTO request = ResendRequestDTO.contractorPasswordSetEmail(to);
-    return sendEmail(request);
+  public void sendContractorPasswordCreatedEmail(String to) {
+    EmailRequestDTO request = EmailRequestDTO.contractorPasswordSetEmail(to);
+    sendEmail(request);
   }
 
-  public String sendOnboardingApprovedEmail(String to) {
-    ResendRequestDTO request = ResendRequestDTO.onboardingApprovedEmail(to);
-    return sendEmail(request);
+  public void sendOnboardingApprovedEmail(String to) {
+    EmailRequestDTO request = EmailRequestDTO.onboardingApprovedEmail(to);
+    sendEmail(request);
   }
 
-  public String sendOnboardingNeedCorrectionsEmail(String to) {
-    ResendRequestDTO request = ResendRequestDTO.onboardingNeedCorrectionsEmail(to);
-    return sendEmail(request);
+  public void sendOnboardingNeedCorrectionsEmail(String to) {
+    EmailRequestDTO request = EmailRequestDTO.onboardingNeedCorrectionsEmail(to);
+    sendEmail(request);
   }
 }

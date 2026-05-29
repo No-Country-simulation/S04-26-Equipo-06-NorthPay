@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.northpay_contractor_onboarding.dto.ErrorResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +12,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.northpay_contractor_onboarding.dto.ErrorResponse;
-
-
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -222,12 +219,12 @@ public class GlobalExceptionHandler {
      * 502 - BAD GATEWAY (Errors from external services)
      * =========================
      */
-    @ExceptionHandler(WebClientResponseException.class)
-    public ResponseEntity<ErrorResponse> handleWebClientResponseException(WebClientResponseException ex) {
+    @ExceptionHandler(CustomMailException.class)
+    public ResponseEntity<ErrorResponse> handleCustomMailException(CustomMailException ex) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ErrorResponse.builder()
                 .status(502)
                 .error("Bad Gateway")
-                .message("Error from external service")
+                .message("Error from external service. " + ex.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build());
     }

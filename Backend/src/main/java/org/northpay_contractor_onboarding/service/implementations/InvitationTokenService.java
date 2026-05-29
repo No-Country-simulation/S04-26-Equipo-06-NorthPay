@@ -109,7 +109,7 @@ public class InvitationTokenService implements IInvitationTokenService {
       throw new ExpiredJwtException(null, null, "Expired token");
     }
 
-    if (referredToken.getUsed() || !referredToken.getIsValid()) {
+    if (!referredToken.getIsValid()) {
       throw new InvalidTokenException("This token is no longer valid");
     }
 
