@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -42,14 +43,13 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-200/30">
-        <button
-          type="button"
-          onClick={() => router.back()}
+        <Link
+          href="/"
           className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-800"
         >
           <span aria-hidden="true">←</span>
           Back
-        </button>
+        </Link>
 
         <h1 className="mt-6 text-3xl font-semibold text-slate-900">
           Admin Login

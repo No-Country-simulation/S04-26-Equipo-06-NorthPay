@@ -20,12 +20,17 @@ public class OnboardingSummaryDTO {
     private ApprovalStatus approvalStatus;
 
 
+    private LocalDateTime createdAt;
+    private Integer currentStep;
+
     public OnboardingSummaryDTO(ApprovalStatus approvalStatus , Onboarding onboarding) {
     this.id = onboarding.getId();
     this.applicantEmail = onboarding.getContractor().getEmail();
     this.applicantName = onboarding.getContractor().getFirstName() + " " + onboarding.getContractor().getLastName();
     this.status = onboarding.getStatus();
     this.updatedAt = onboarding.getUpdatedAt();
+    this.createdAt = onboarding.getCreatedAt();
+    this.currentStep = onboarding.getCurrentStep();
     this.approvalStatus = approvalStatus;
      
     }

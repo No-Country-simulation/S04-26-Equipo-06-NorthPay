@@ -352,7 +352,29 @@ export default function OnboardingPage() {
       }
 
       if (stepIndex === 3) {
-        console.log("Sending encrypted payment data to BE-US-09...", data.paymentDetails);
+        if (!onboardingId) throw new Error("Missing onboarding ID");
+        
+        // Define correct payload based on method
+        const paymentPayload = {
+          paymentMethodType: data.paymentMethod === "wallet" ? "DIGITAL_PLATFORM" : "CRYPTO_CURRENCY",
+          platform: data.paymentMethod === "wallet" ? data.paymentDetails.platform : null,
+          walletEmail: data.paymentMethod === "wallet" ? data.paymentDetails.walletEmail : null,
+          network: data.paymentMethod === "crypto" ? data.paymentDetails.network : null,
+          walletAddress: data.paymentMethod === "crypto" ? data.paymentDetails.walletAddress : null
+        };
+
+        const paymentRes = await fetch(`${API_URL}/api/v1/payment-method/create/${onboardingId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${document.cookie.split("; ").find(r => r.startsWith("returnedToken="))?.split("=")[1] ? decodeURIComponent(document.cookie.split("; ").find(r => r.startsWith("returnedToken="))?.split("=")[1]!) : ""}`
+          },
+          body: JSON.stringify(paymentPayload)
+        });
+
+        if (!paymentRes.ok) {
+          throw new Error("Could not save payment details. Please try again.");
+        }
       }
 
       if (stepIndex < steps.length - 1) {
@@ -360,6 +382,17 @@ export default function OnboardingPage() {
         setStepIndex(nextStep);
         setMaxStepReached((prev) => Math.max(prev, nextStep));
       } else {
+        if (onboardingId) {
+          const completeRes = await fetch(`${API_URL}/api/v1/onboarding/${onboardingId}/complete`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${document.cookie.split("; ").find(r => r.startsWith("returnedToken="))?.split("=")[1] ? decodeURIComponent(document.cookie.split("; ").find(r => r.startsWith("returnedToken="))?.split("=")[1]!) : ""}`
+            }
+          });
+          if (!completeRes.ok) {
+             throw new Error("Failed to finalize onboarding.");
+          }
+        }
         setSubmitted(true);
       }
     } catch (submitError) {
