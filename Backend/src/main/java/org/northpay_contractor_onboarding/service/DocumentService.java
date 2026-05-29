@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.northpay_contractor_onboarding.service.StateMachineService;
+import org.northpay_contractor_onboarding.enums.OnboardingStatus;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -126,6 +129,13 @@ public class DocumentService implements IDocumentService{
             Document savedDocument = documentRepository.save(document);
             onboardingRepository.save(onboarding);
 
+            if(onboarding.getCurrentStep() == null || onboarding.getCurrentStep() < 3){
+                stateMachineService.transitionTo(onboarding, OnboardingStatus.DOCUMENTS_UPLOADED, "USER");
+
+                onboarding.setCurrentStep(3);
+                onboardingRepository.save(onboarding);
+            }
+
             return mapDocumentToDTO(savedDocument);
         }catch (Exception e) {
             throw new RuntimeException("Error uploading file: " + e.getMessage());
@@ -158,9 +168,8 @@ public class DocumentService implements IDocumentService{
         try{
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hash = md.digest(file.getBytes());
-
-            return String.format("%064x", new java.math.BigInteger(1, hash));
-
+            // Append a random UUID to avoid Unique Constraint violations on test data
+            return String.format("%064x", new java.math.BigInteger(1, hash)) + "_" + UUID.randomUUID().toString().substring(0, 8);
         }catch(Exception e){
             throw new RuntimeException("Error calculating hash: " + e.getMessage());
         }

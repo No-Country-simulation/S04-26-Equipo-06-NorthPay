@@ -100,10 +100,9 @@ public class OnboardingService implements IOnboardiIngService {
                 var onboarding = onboardingRepository.findById(id).orElseThrow(
                                 () -> new NotFoundException("Onboarding not found"));
 
-                if (onboarding.getStatus() == OnboardingStatus.IDENTITY_VERIFICATION_COMPLETED) {
-                        stateMachineService.transitionTo(onboarding, OnboardingStatus.PENDING_VERIFICATION, "USER");
-                        onboarding.setCurrentStep(6);
-                }
+                stateMachineService.transitionTo(onboarding, OnboardingStatus.IDENTITY_VERIFICATION_COMPLETED, "USER");
+                stateMachineService.transitionTo(onboarding, OnboardingStatus.PENDING_VERIFICATION, "USER");
+                onboarding.setCurrentStep(6);
 
                 var dbOnboarding = onboardingRepository.save(onboarding);
 

@@ -15,6 +15,8 @@ import org.northpay_contractor_onboarding.repository.PaymentMethodRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.northpay_contractor_onboarding.service.StateMachineService;
+import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 
 @Service
 public class PaymentMethodService implements IPaymentMethodService {
@@ -60,10 +62,12 @@ public class PaymentMethodService implements IPaymentMethodService {
 
     // CREATE PAYMENT METHOD
     @Override
-    public PaymentMethodResponseDTO createPaymentMethod(PaymentMethodRequestDTO paymentMethod, UUID onboardingId) {
+    @Transactional
+    public PaymentMethodResponseDTO createPaymentMethod(PaymentMethodRequestDTO paymentMethod, UUID onboardingId){
 
         Onboarding onboarding = onboardingRepository.findById(onboardingId).orElseThrow(
                 () -> new IllegalArgumentException("Onboarding not found"));
+
 
         PaymentMethod paymentMethodEntity = PaymentMethod.builder()
                 .paymentMethodType(paymentMethod.getPaymentMethodType())
@@ -72,10 +76,18 @@ public class PaymentMethodService implements IPaymentMethodService {
                 .network(paymentMethod.getNetwork())
                 .walletAddress(paymentMethod.getWalletAddress())
                 .created_at(LocalDateTime.now())
+                .isPaymentVerified(false)
                 .onboarding(onboarding)
                 .build();
 
         PaymentMethod saved = paymentMethodRepository.save(paymentMethodEntity);
+
+        if(onboarding.getCurrentStep() == null || onboarding.getCurrentStep() < 5) {
+            stateMachineService.transitionTo(onboarding, OnboardingStatus.PAYMENT_CONFIGURED, "USER");
+
+            onboarding.setCurrentStep(5);
+            onboardingRepository.save(onboarding);
+        }
 
         return mapToDTO(saved);
     }

@@ -36,8 +36,18 @@ export default function ContractSigning({ data, onChange, onboardingId }: Props)
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
     try {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("returnedToken="))
+        ?.split("=")[1];
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
       // 1. Try to get contract
-      const response = await fetch(`http://localhost:8080/api/v1/contract/getByOnboardingId/${onboardingId}`, {
+      const response = await fetch(`${API_URL}/api/v1/contract/getByOnboardingId/${onboardingId}`, {
+        headers: {
+          Authorization: `Bearer ${token ? decodeURIComponent(token) : ""}`,
+        },
         signal: controller.signal
       });
 
@@ -57,10 +67,11 @@ export default function ContractSigning({ data, onChange, onboardingId }: Props)
       const createController = new AbortController();
       const createTimeoutId = setTimeout(() => createController.abort(), 10000);
 
-      const createResponse = await fetch(`http://localhost:8080/api/v1/contract/create/${onboardingId}`, {
+      const createResponse = await fetch(`${API_URL}/api/v1/contract/create/${onboardingId}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token ? decodeURIComponent(token) : ""}`
         },
         body: JSON.stringify({
           content: `NORTHPAY SERVICES AGREEMENT
@@ -129,10 +140,18 @@ By checking the acceptance box and typing your full legal name in the signature 
     setError(null);
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/contract/sign_contract/${contract.contract_id}`, {
+      const token = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("returnedToken="))
+        ?.split("=")[1];
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+      const response = await fetch(`${API_URL}/api/v1/contract/sign_contract/${contract.contract_id}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token ? decodeURIComponent(token) : ""}`
         },
         body: JSON.stringify({
           signature: signatureText.trim()

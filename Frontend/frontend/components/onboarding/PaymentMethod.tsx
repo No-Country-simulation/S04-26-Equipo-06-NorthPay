@@ -201,7 +201,7 @@ export default function PaymentMethod({ data, onChange, onPaymentDetailChange }:
       <footer className="rounded-2xl bg-sky-50/50 p-5 border border-sky-100/50">
         <p className="text-xs text-sky-700 leading-relaxed flex items-start gap-3">
           <span className="shrink-0 text-lg">🔒</span>
-          All verification requests are processed via NorthPay's secure compliance tunnel (BE-US-09).
+          All verification requests are processed via NorthPay's secure compliance tunnel.
         </p>
       </footer>
     </div>

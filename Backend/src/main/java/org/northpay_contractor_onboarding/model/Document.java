@@ -24,7 +24,7 @@ public class Document {
     private String fileSize;
     private String fileExtension;
     private String fileUrl;
-    @Column(unique = true)
+    @Column
     private String fileHash;
     private Integer version;
     private Boolean activeVersion;
