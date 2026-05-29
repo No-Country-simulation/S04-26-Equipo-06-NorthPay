@@ -11,7 +11,10 @@ import org.northpay_contractor_onboarding.repository.ContractRepository;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.northpay_contractor_onboarding.model.Contract;
+import org.northpay_contractor_onboarding.service.StateMachineService;
+import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -27,6 +30,9 @@ public class ContractService implements IContractService{
 
     @Autowired
     private OnboardingRepository onboardingRepository;
+
+    @Autowired
+    private StateMachineService stateMachineService;
 
     //GET ALL CONTRACTS
     @Override
@@ -82,6 +88,7 @@ public class ContractService implements IContractService{
 
     //SIGN CONTRACT
     @Override
+    @Transactional
     public String signContract(UUID contractId,
                                SignContractRequestDTO requestDTO){
 
@@ -96,6 +103,14 @@ public class ContractService implements IContractService{
         contract.setSignedBy(requestDTO.getSignature());
         contract.setStatus(ContractStatus.SIGNED);
         contractRepository.save(contract);
+
+        Onboarding onboarding = contract.getOnboarding();
+        if(onboarding != null && (onboarding.getCurrentStep() == null || onboarding.getCurrentStep() < 4)) {
+            stateMachineService.transitionTo(onboarding, OnboardingStatus.CONTRACT_SIGNED, "USER");
+
+            onboarding.setCurrentStep(4);
+            onboardingRepository.save(onboarding);
+        }
 
         return "Contract has been signed Successfully";
     }

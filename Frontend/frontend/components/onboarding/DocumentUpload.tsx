@@ -81,14 +81,32 @@ export default function DocumentUpload({ data, onChange, onboardingId }: Props) 
         
         // Llamada real al backend para guardar el documento
         const uploadToBackend = async () => {
+          if (!onboardingId) {
+            setUpload((prev) => ({
+              ...prev,
+              status: "error",
+              errorMsg: "Missing Onboarding ID. Please restart from Step 1.",
+            }));
+            return;
+          }
+
           const formData = new FormData();
           formData.append("file", file);
           // ID real temporal para probar el guardado en base de datos
           formData.append("onboardingId", onboardingId); 
 
           try {
-            const response = await fetch("http://localhost:8080/api/v1/document/upload", {
+            const token = document.cookie
+              .split("; ")
+              .find((row) => row.startsWith("returnedToken="))
+              ?.split("=")[1];
+
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+            const response = await fetch(`${API_URL}/api/v1/document/upload`, {
               method: "POST",
+              headers: {
+                Authorization: `Bearer ${token ? decodeURIComponent(token) : ""}`,
+              },
               body: formData,
             });
 
@@ -104,12 +122,12 @@ export default function DocumentUpload({ data, onChange, onboardingId }: Props) 
               errorMsg: null,
             });
             onChange("documentName", file.name);
-          } catch (error) {
+          } catch (error: any) {
             console.error("Upload error:", error);
             setUpload((prev) => ({
               ...prev,
               status: "error",
-              errorMsg: "Error saving to database. Check console.",
+              errorMsg: error.message || "Error saving to database. Check console.",
             }));
           }
         };
@@ -210,7 +228,7 @@ export default function DocumentUpload({ data, onChange, onboardingId }: Props) 
         </div>
         <div className="space-y-2">
           <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            Document Number (National ID/Passport)
+            ID Number (National ID/Passport)
           </label>
           <input
             type="text"
