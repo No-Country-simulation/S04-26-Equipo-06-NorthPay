@@ -97,13 +97,6 @@ public class InvitationTokenService implements IInvitationTokenService {
   }
 
   @Override
-  public boolean checkInvitationTokenUrlIsExpired(String tokenUrl) {
-    return invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
-      () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
-    ).getExpiresAt().isBefore(LocalDateTime.now());
-  }
-
-  @Override
   public InvitationTokenDTO validateAndGetTokenData(String tokenUrl) {
     InvitationTokens referredToken = invitationTokenRepository.findByTokenUrl(tokenUrl).orElseThrow(
       () -> new NotFoundException("Invitation with token '%s' not found".formatted(tokenUrl))
@@ -111,13 +104,13 @@ public class InvitationTokenService implements IInvitationTokenService {
 
     if (referredToken.getExpiresAt().isBefore(LocalDateTime.now())) {
       if (referredToken.getIsValid()) {
-          invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build());
+        invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build());
       }
       throw new ExpiredJwtException(null, null, "Expired token");
     }
 
-    if (referredToken.getUsed() || !referredToken.getIsValid()) {
-      throw new ExpiredJwtException(null, null, "Expired or already used token");
+    if (!referredToken.getIsValid()) {
+      throw new InvalidTokenException("This token is no longer valid");
     }
 
     return InvitationTokenDTO.builder()
@@ -132,9 +125,6 @@ public class InvitationTokenService implements IInvitationTokenService {
       .onboardingId(referredToken.getOnboarding().getId().toString())
       .build();
   }
-  public boolean checkInvitationTokenUrlIsExpired(InvitationTokens invToken) {
-    return invToken.getExpiresAt().isBefore(LocalDateTime.now());
-  }
 
   @Override
   public void useTokenForFirstTime(InvTokenContractorSignUp info) {
@@ -142,7 +132,7 @@ public class InvitationTokenService implements IInvitationTokenService {
       () -> new NotFoundException("Invitation with token '%s' not found".formatted(info.tokenUrl()))
     );
 
-    if (this.checkInvitationTokenUrlIsExpired(referredToken) && !referredToken.getUsed()) {
+    if (referredToken.getExpiresAt().isBefore(LocalDateTime.now()) && !referredToken.getUsed()) {
       invitationTokenRepository.save(referredToken.toBuilder().isValid(false).build()); // registro de intento
       throw new ExpiredJwtException(null, null, "Expired invitation token.");
     }

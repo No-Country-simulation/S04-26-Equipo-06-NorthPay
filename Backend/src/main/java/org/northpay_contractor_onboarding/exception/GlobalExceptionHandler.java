@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.northpay_contractor_onboarding.dto.ErrorResponse;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,13 +12,9 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.northpay_contractor_onboarding.dto.ErrorResponse;
-
-
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -29,10 +26,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ApiError.class)
     public ResponseEntity<ErrorResponse> handleCustomApiError(ApiError ex) {
 
-        ErrorResponse errorBody = new ErrorResponse(
-                ex.getMessage(),
-                ex.getStatus().value(),
-                LocalDateTime.now());
+        ErrorResponse errorBody = ErrorResponse.builder()
+            .message(ex.getMessage())
+            .status(ex.getStatus().value())
+            .timestamp(LocalDateTime.now())
+            .build();
 
         return new ResponseEntity<>(errorBody, ex.getStatus());
     }
@@ -44,7 +42,7 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
 
         ex.getBindingResult().getFieldErrors().forEach(error -> {
@@ -53,31 +51,38 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
-        return ResponseEntity.badRequest().body(Map.of(
-                "status", 400,
-                "error", "Bad Request",
-                "message", "Validation failed",
-                "details", errors));
+        return ResponseEntity.badRequest().body(ErrorResponse.builder()
+                .status(400)
+                .error("Bad Request")
+                .message("Validation failed")
+                .details(errors)
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleConstraintViolation(
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(
             ConstraintViolationException ex) {
 
-        return ResponseEntity.badRequest().body(Map.of(
-                "status", 400,
-                "error", "Bad Request",
-                "message", ex.getMessage()));
+        return ResponseEntity.badRequest().body(ErrorResponse.builder()
+                .status(400)
+                .error("Bad Request")
+                .message("Constraint violation")
+                .details(Map.of("message", ex.getMessage()))
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidJson(
+    public ResponseEntity<ErrorResponse> handleInvalidJson(
             HttpMessageNotReadableException ex) {
 
-        return ResponseEntity.badRequest().body(Map.of(
-                "status", 400,
-                "error", "Bad Request",
-                "message", "Malformed JSON request"));
+        return ResponseEntity.badRequest().body(ErrorResponse.builder()
+                .status(400)
+                .error("Bad Request")
+                .message("Malformed JSON request")
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     /*
@@ -87,43 +92,47 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                "status", 401,
-                "error", "Unauthorized",
-                "message", "Invalid credentials: " + ex.getMessage())
-        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse.builder()
+                .status(401)
+                .error("Unauthorized")
+                .message("Invalid credentials: " + ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<Map<String, Object>> handleExpiredJwt(ExpiredJwtException ex) {
+    public ResponseEntity<ErrorResponse> handleExpiredJwt(ExpiredJwtException ex) {
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                "status", 401,
-                "error", "Unauthorized",
-                "message", ex.getMessage().isBlank() ? "Token expired" : ex.getMessage())
-        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse.builder()
+                .status(401)
+                .error("Unauthorized")
+                .message(ex.getMessage().isBlank() ? "Token expired" : ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     @ExceptionHandler({MalformedJwtException.class, SignatureException.class})
-    public ResponseEntity<Map<String, Object>> handleInvalidJwt(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleInvalidJwt(Exception ex) {
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                "status", 401,
-                "error", "Unauthorized",
-                "message", "Invalid token: " + ex.getMessage())
-        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse.builder()
+                .status(401)
+                .error("Unauthorized")
+                .message("Invalid token: " + ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<Map<String, Object>> handleCustomInvalidToken(InvalidTokenException ex) {
+    public ResponseEntity<ErrorResponse> handleCustomInvalidToken(InvalidTokenException ex) {
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of(
-                "status", 401,
-                "error", "Unauthorized",
-                "message", ex.getMessage())
-        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse.builder()
+                .status(401)
+                .error("Unauthorized")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     /*
@@ -133,13 +142,14 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Map<String, Object>> handleAccessDenied(
-            AccessDeniedException ex) {
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
 
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
-                "status", 403,
-                "error", "Forbidden",
-                "message", "You do not have permission to access this resource. " + ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorResponse.builder()
+                .status(403)
+                .error("Forbidden")
+                .message("You do not have permission to access this resource. " + ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     /*
@@ -149,13 +159,14 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFound(
-            NotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(NotFoundException ex) {
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                "status", 404,
-                "error", "Not Found",
-                "message", ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse.builder()
+                .status(404)
+                .error("Not Found")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     /*
@@ -165,23 +176,25 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDataIntegrity(
-            DataIntegrityViolationException ex) {
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                "status", 409,
-                "error", "Conflict",
-                "message", "Database integrity violation"));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
+                .status(409)
+                .error("Conflict")
+                .message("Database integrity violation")
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     @ExceptionHandler(AlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handleAlreadyExists(
-            AlreadyExistsException ex) {
+    public ResponseEntity<ErrorResponse> handleAlreadyExists(AlreadyExistsException ex) {
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                "status", 409,
-                "error", "Conflict",
-                "message", ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
+                .status(409)
+                .error("Conflict")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     /*
@@ -191,13 +204,14 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<Map<String, Object>> handleMethodNotAllowed(
-            HttpRequestMethodNotSupportedException ex) {
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
 
-        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(Map.of(
-                "status", 405,
-                "error", "Method Not Allowed",
-                "message", ex.getMessage()));
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(ErrorResponse.builder()
+                .status(405)
+                .error("Method Not Allowed")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     /**
@@ -205,12 +219,14 @@ public class GlobalExceptionHandler {
      * 502 - BAD GATEWAY (Errors from external services)
      * =========================
      */
-    @ExceptionHandler(WebClientResponseException.class)
-    public ResponseEntity<Map<String, Object>> handleWebClientResponseException(WebClientResponseException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
-                "status", ex.getStatusCode().value(),
-                "error", "Error from external service",
-                "message", ex.getResponseBodyAsString()));
+    @ExceptionHandler(CustomMailException.class)
+    public ResponseEntity<ErrorResponse> handleCustomMailException(CustomMailException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ErrorResponse.builder()
+                .status(502)
+                .error("Bad Gateway")
+                .message("Error from external service. " + ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 
     /*
@@ -220,13 +236,14 @@ public class GlobalExceptionHandler {
      */
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(
-            Exception ex) {
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "status", 500,
-                "error", "Internal Server Error",
-                "message", ex.getMessage(),
-                "stackTrace", ex.getStackTrace()));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ErrorResponse.builder()
+                .status(500)
+                .error("Internal Server Error")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .stackTrace(ex.getStackTrace())
+                .build());
     }
 }

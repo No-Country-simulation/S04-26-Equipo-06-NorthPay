@@ -15,16 +15,12 @@ import jakarta.validation.constraints.NotNull;
 
 public interface IInvitationTokenService {
   List<InvitationTokenDTO> getAll();
+  InvitationTokenDTO validateAndGetTokenData(@NotNull String tokenUrl);
 
   public InvitationTokenDTO create(UUID onboardingId, String contractorEmail, AuthenticatedUserDetails loggedOperator);
 
-  public boolean checkInvitationTokenUrlIsExpired(String tokenUrl);
-
   public void useTokenForFirstTime(InvTokenContractorSignUp info);
-
   TokenDTO login(@Valid ContractorLoginDTO loginInfo);
 
   void invalidateToken(@NotBlank String tokenUrl);
-
-  InvitationTokenDTO validateAndGetTokenData(String tokenUrl);
 }

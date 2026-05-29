@@ -48,6 +48,11 @@ public class InvitationTokenController {
   public ResponseEntity<List<InvitationTokenDTO>> getAll() {
     return new ResponseEntity<>(invTokenService.getAll(), HttpStatus.OK);
   }
+
+  @GetMapping("/validate/{tokenUrl}")
+  public ResponseEntity<InvitationTokenDTO> validateToken(@PathVariable String tokenUrl) {
+    return new ResponseEntity<>(invTokenService.validateAndGetTokenData(tokenUrl), HttpStatus.OK);
+  }
   
   @PostMapping("")
   @PreAuthorize("hasAnyRole('OPERATOR')")
@@ -76,11 +81,6 @@ public class InvitationTokenController {
   public ResponseEntity<Void> useTokenForFirstTime(@Valid @RequestBody InvTokenContractorSignUp data) {
     invTokenService.useTokenForFirstTime(data);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-  }
-
-  @GetMapping("/validate/{tokenUrl}")
-  public ResponseEntity<InvitationTokenDTO> validateToken(@PathVariable String tokenUrl) {
-    return new ResponseEntity<>(invTokenService.validateAndGetTokenData(tokenUrl), HttpStatus.OK);
   }
 
   @PostMapping("/login")
