@@ -46,7 +46,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
         });
         setStatus("success");
       } else {
-        setErrorMessage("The provided token does not have the correct role to access this page.");
+        setErrorMessage("The provided token does not have the correct role to access this page. Please logout operator session and try again");
         setStatus("error");
       }
     } else {
