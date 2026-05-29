@@ -213,7 +213,7 @@ export default function AdminPanel() {
           if (newestToken) {
             const inviteUrl = `http://localhost:3000/invite/${newestToken.tokenUrl}`;
             setInviteResult(
-              <span>Invitation created! Testing link: <a href={inviteUrl} target="_blank" rel="noopener noreferrer" className="text-sky-600 underline">{inviteUrl}</a></span>
+              <span>Invitation created!{/*  Testing link: <a href={inviteUrl} target="_blank" rel="noopener noreferrer" className="text-sky-600 underline">{inviteUrl}</a> */}</span>
             );
           } else {
             setInviteResult("Invitation created! The contractor will receive an email with their access link.");

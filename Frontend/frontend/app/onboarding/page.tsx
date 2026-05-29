@@ -56,12 +56,11 @@ export default function OnboardingPage() {
   const [maxStepReached, setMaxStepReached] = useState(0);
   const [data, setData] = useState<OnboardingData>(initialData);
   const [submitted, setSubmitted] = useState(false);
+  const [approved, setApproved] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
   const [personalDataErrors, setPersonalDataErrors] = useState<PersonalDataErrors>({});
   const [onboardingId, setOnboardingId] = useState<string>("");
-
-
 
   useEffect(() => {
     const saved = sessionStorage.getItem("onboarding_progress");
@@ -80,7 +79,11 @@ export default function OnboardingPage() {
         if (savedOnboardingId && savedOnboardingId !== "") {
           setOnboardingId(savedOnboardingId);
 
-          
+          fetch(`${API_URL}/api/v1/onboarding/${savedOnboardingId}`, {}).then(res => res.json()).then(onboarding => {
+            setApproved(onboarding.status == "APPROVED");
+            setSubmitted(false)
+          })
+
         }
       } catch (e) {
         console.error("Error loading onboarding progress", e);
@@ -286,7 +289,7 @@ export default function OnboardingPage() {
 
     if (!response.ok) {
       if (response.status === 404 || result?.message?.includes("Onboarding not found")) {
-        setOnboardingId(null);
+        setOnboardingId("");
         sessionStorage.removeItem("onboarding_progress");
         throw new Error("Your session expired or was not found. Please click Continue again to restart.");
       }
@@ -543,6 +546,10 @@ export default function OnboardingPage() {
                           </Link>
                         </div>
                       </div>
+                      ) : approved ? (
+                        <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-slate-800">
+                          <p className="text-lg font-semibold">Congratulations! Your onboarding has been successfully approved</p>
+                        </div>
                       ) : (
                       <form className="space-y-8">
                         {stepIndex === 0 && (
