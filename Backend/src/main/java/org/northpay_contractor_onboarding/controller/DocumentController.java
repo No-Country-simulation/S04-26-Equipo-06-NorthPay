@@ -23,27 +23,27 @@ public class DocumentController {
     //GET ALL DOCUMENTS
     @GetMapping("/getAll")
     public ResponseEntity<List<DocumentResponseDTO>> getAllDocuments(){
-        return null;
+       List<DocumentResponseDTO> documents = documentService.getAllDocuments();
+
+       return ResponseEntity.status(HttpStatus.OK).body(documents);
     }
 
     //GET DOCUMENT BY ID
     @GetMapping("/getById/{id}")
     public ResponseEntity<DocumentResponseDTO> getDocumentById(@PathVariable String id){
-        return null;
+        return ResponseEntity.status(HttpStatus.OK).body(documentService.getDocumentById(id));
     }
 
     //GET DOCUMENT BY ONBOARDING ID
     @GetMapping("/getByOnboardingId/{onboardingId}")
-    public ResponseEntity<List<DocumentResponseDTO>> getDocumentsByOnboardingId(@PathVariable String onboardingId){
-        return null;
+    public ResponseEntity<DocumentResponseDTO> getDocumentsByOnboardingId(@PathVariable String onboardingId){
+        return ResponseEntity.status(HttpStatus.OK).body(documentService.getDocumentByOnboardingId(UUID.fromString(onboardingId)));
     }
 
     //UPLOAD DOCUMENT
     @PostMapping("/upload")
     public ResponseEntity<DocumentResponseDTO> uploadDocument(@RequestParam MultipartFile file,
                                                               @RequestParam UUID onboardingId) throws IOException {
-
-
         DocumentResponseDTO response = documentService.uploadDocument(file, onboardingId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

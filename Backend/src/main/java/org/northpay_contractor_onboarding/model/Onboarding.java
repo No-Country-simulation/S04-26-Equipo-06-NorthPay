@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.northpay_contractor_onboarding.enums.ApprovalStatus;
 import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 
 import jakarta.persistence.CascadeType;
@@ -19,7 +20,7 @@ import jakarta.persistence.JoinColumn;
 
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,8 +44,11 @@ public class Onboarding {
   @Column(name = "status")
   @Enumerated(EnumType.STRING)
   private OnboardingStatus status;
-  @Column(name = "current_step")
-  private int currentStep;
+  @Column(name = "aprroval_statu")
+  @Enumerated(EnumType.STRING)
+  private  ApprovalStatus aprrovalStatus;
+  @Column(name="current_step")
+  private Integer currentStep;
   @Column(name = "created_at")
   private LocalDateTime createdAt;
   @Column(name = "update_at")
@@ -57,5 +61,7 @@ public class Onboarding {
   private List<Document> documents;
   @OneToMany(mappedBy = "onboarding", cascade = CascadeType.ALL)
   private List<OnboardingHistory> history;
+  @OneToMany(mappedBy = "onboarding", cascade = CascadeType.ALL)
+  private List<OnboardingReview> requestOnboardings;
 
 }

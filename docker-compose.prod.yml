@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # 1. SERVICIO DE LA BASE DE DATOS
+  postgres:
+    image: postgres:18.3-alpine
+    container_name: northpay-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - northpay-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. SERVICIO DEL BACKEND (Spring Boot)
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile.prod  # <- Aquí usamos el Dockerfile optimizado
+    container_name: northpay-backend-prod
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+    networks:
+      - northpay-network
+    # NOTA: Sin puertos expuestos al host. El proxy Nginx se encarga.
+
+  # 3. SERVICIO DEL FRONTEND (Next.js)
+  frontend:
+    build:
+      context: ./Frontend/frontend
+      dockerfile: Dockerfile
+      # NOTA: En un caso real, aquí usarías un Dockerfile de producción para Next.js
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: northpay-frontend-prod
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - northpay-network
+    # NOTA: Sin puertos expuestos al host. El proxy Nginx se encarga.
+
+  # 4. SERVICIO PROXY INVERSO (NGINX)
+  proxy:
+    image: nginx:alpine
+    container_name: northpay-proxy
+    restart: always
+    depends_on:
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certbot/conf:/etc/nginx/ssl
+      - ./certbot/www:/var/www/certbot
+    networks:
+      - northpay-network
+
+networks:
+  northpay-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

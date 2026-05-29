@@ -18,8 +18,6 @@ public class PaymentMethodRequestDTO {
     private String walletEmail;
     private String network;
     private String walletAddress;
-    private Boolean isPaymentVerified;
-    private String verificationNotes;
     private UUID onboarding_id;
 
 }

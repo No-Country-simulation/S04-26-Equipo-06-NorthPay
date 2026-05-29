@@ -6,6 +6,7 @@ import java.util.List;
 import org.northpay_contractor_onboarding.dto.operatorDtos.OperatorDTO;
 import org.northpay_contractor_onboarding.dto.operatorDtos.OperatorRegistrationDTO;
 import org.northpay_contractor_onboarding.enums.OnboardingStatus;
+import org.northpay_contractor_onboarding.exception.NotFoundException;
 import org.northpay_contractor_onboarding.model.ContactInformation;
 import org.northpay_contractor_onboarding.model.Contractor;
 import org.northpay_contractor_onboarding.model.Onboarding;
@@ -14,6 +15,7 @@ import org.northpay_contractor_onboarding.repository.ContractorRepository;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.northpay_contractor_onboarding.repository.OperatorRepository;
 import org.northpay_contractor_onboarding.service.interfaces.IOperatorsService;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +45,7 @@ public class OperatorsService implements IOperatorsService {
   @Override @Transactional(readOnly = true)
   public OperatorDTO getByEmail(@Email String email) {
     Operators found = operatorRepository.findByEmail(email).orElseThrow(
-      () -> new RuntimeException()
+      () -> new NotFoundException("Operator with email '%s' doesn't exists".formatted(email))
     );
 
     return new OperatorDTO(found.getId().toString(), found.getEmail(), found.getName());
@@ -52,7 +54,7 @@ public class OperatorsService implements IOperatorsService {
   @Override @Transactional
   public OperatorDTO create(@Valid OperatorRegistrationDTO registrationDTO) {
     if (!registrationDTO.password().equals(registrationDTO.passwordConfirmation())) {
-      throw new RuntimeException("La contraseña definida y su confirmación no coinciden");
+      throw new BadCredentialsException("Password and it confirmation aren't the same");
     }
 
     Operators registered = operatorRepository.save(
@@ -67,6 +69,8 @@ public class OperatorsService implements IOperatorsService {
   }
 
   // method for dev env
+  @Override
+  @Deprecated
   public Onboarding createOnboardingTEST() {
     Contractor contractor = contractorRepository.save(Contractor.builder()
       .firstName("fN")

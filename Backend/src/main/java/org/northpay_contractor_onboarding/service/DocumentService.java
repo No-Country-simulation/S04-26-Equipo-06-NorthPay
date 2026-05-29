@@ -10,6 +10,9 @@ import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.northpay_contractor_onboarding.service.StateMachineService;
+import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,26 +33,48 @@ public class DocumentService implements IDocumentService{
     @Autowired
     private OnboardingRepository onboardingRepository;
 
+    @Autowired
+    private StateMachineService stateMachineService;
+
     //GET ALL DOCUMENTS
     @Override
     public List<DocumentResponseDTO> getAllDocuments(){
-        return null;
+
+        List<Document> documents = documentRepository.findAll();
+        List<DocumentResponseDTO> documentResponseDTOS = documents.stream()
+                .map(this::mapDocumentToDTO)
+                .toList();
+
+        return documentResponseDTOS;
     }
 
     //GET DOCUMENT BY ID
     @Override
     public DocumentResponseDTO getDocumentById(String id){
-        return null;
+
+        Document document = documentRepository.findById(UUID.fromString(id)).orElseThrow(
+                () -> new IllegalArgumentException("Document not found")
+        );
+
+        DocumentResponseDTO dto = mapDocumentToDTO(document);
+
+        return dto;
     }
 
     //GET DOCUMENT BY ONBOARDING ID
     @Override
-    public List<DocumentResponseDTO> getDocumentsByOnboardingId(UUID onboardingId){
-        return null;
+    public DocumentResponseDTO getDocumentByOnboardingId(UUID onboardingId){
+
+        Document document = documentRepository.findByOnboardingId(onboardingId);
+
+        DocumentResponseDTO dto = mapDocumentToDTO(document);
+
+        return dto;
     }
 
     //UPLOAD DOCUMENT
     @Override
+    @Transactional
     public DocumentResponseDTO uploadDocument(MultipartFile file,
                                               UUID onboardingId) throws IOException {
         try {
@@ -63,7 +88,7 @@ public class DocumentService implements IDocumentService{
 
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
 
-            Path path = Paths.get(fileName);
+            Path path = Paths.get("uploads");
 
             if (!Files.exists(path)){
                 Files.createDirectories(path);
@@ -75,7 +100,11 @@ public class DocumentService implements IDocumentService{
 
             String fileUrl = "/uploads/" + fileName;
 
-            Document document = new Document();
+            Document document = documentRepository.findByOnboardingId(onboardingId);
+            if (document == null) {
+                document = new Document();
+                document.setOnboarding(onboarding);
+            }
 
             document.setFileUrl(fileUrl);
             document.setFileHash(fileHash);
@@ -86,12 +115,18 @@ public class DocumentService implements IDocumentService{
                 String extension = originalName.substring(originalName.lastIndexOf(".") + 1);
                 document.setFileExtension(extension);
             }
-            document.setVersion(1);
+            document.setVersion(document.getVersion() != null ? document.getVersion() + 1 : 1);
             document.setActiveVersion(true);
             document.setStatus(DocumentStatus.PENDING_REVIEW);
-            document.setOnboarding(onboarding);
 
             Document savedDocument = documentRepository.save(document);
+
+            if(onboarding.getCurrentStep() == null || onboarding.getCurrentStep() < 3){
+                stateMachineService.transitionTo(onboarding, OnboardingStatus.DOCUMENTS_UPLOADED, "USER");
+
+                onboarding.setCurrentStep(3);
+                onboardingRepository.save(onboarding);
+            }
 
             return mapDocumentToDTO(savedDocument);
         }catch (Exception e) {
@@ -103,19 +138,19 @@ public class DocumentService implements IDocumentService{
     private void validateFile(MultipartFile file){
 
         List<String> allowedExtensions = List.of(
-                "application/pdf",
                 "image/jpg",
                 "image/jpeg",
-                "image/png");
+                "image/png",
+                "application/pdf");
 
         if(!allowedExtensions.contains(file.getContentType())){
-            throw new IllegalArgumentException("Invalid file type");
+            throw new IllegalArgumentException("Invalid file type: " + file.getContentType());
         }
 
-        long maxSize = 5 * 1024 * 1024;
+        long maxSize = 10 * 1024 * 1024;
 
         if(file.getSize() > maxSize){
-            throw new IllegalArgumentException("File size exceeds 1MB");
+            throw new IllegalArgumentException("File size exceeds 10MB");
         }
 
     }
@@ -125,9 +160,8 @@ public class DocumentService implements IDocumentService{
         try{
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hash = md.digest(file.getBytes());
-
-            return String.format("%064x", new java.math.BigInteger(1, hash));
-
+            // Append a random UUID to avoid Unique Constraint violations on test data
+            return String.format("%064x", new java.math.BigInteger(1, hash)) + "_" + UUID.randomUUID().toString().substring(0, 8);
         }catch(Exception e){
             throw new RuntimeException("Error calculating hash: " + e.getMessage());
         }

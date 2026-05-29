@@ -87,9 +87,9 @@ sudo docker compose -f docker-compose.prod.yml up --build
 ### 4. Acceder
 * Frontend: http://localhost:3000
 
-* Backend API: http://localhost:8080/api
+* Backend API: http://localhost:8080/api/v1
 
-* Swagger: http://localhost:8080/swagger-ui.html
+* Swagger: http://localhost:8080/swagger
 
 ---
 
