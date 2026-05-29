@@ -56,25 +56,35 @@ export default function OnboardingPage() {
   const [maxStepReached, setMaxStepReached] = useState(0);
   const [data, setData] = useState<OnboardingData>(initialData);
   const [submitted, setSubmitted] = useState(false);
+  const [approved, setApproved] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
   const [personalDataErrors, setPersonalDataErrors] = useState<PersonalDataErrors>({});
-  const [onboardingId, setOnboardingId] = useState<string | null>(null);
-
-
+  const [onboardingId, setOnboardingId] = useState<string>("");
 
   useEffect(() => {
     const saved = sessionStorage.getItem("onboarding_progress");
+    console.log("Loaded onboarding progress:", saved);
 
     if (saved) {
       try {
         const { stepIndex: savedStepIndex, data: savedData, maxStepReached: savedMaxStepReached, onboardingId: savedOnboardingId } =
           JSON.parse(saved);
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStepIndex(savedStepIndex);
         setData(savedData);
         setMaxStepReached(savedMaxStepReached);
-        if (savedOnboardingId) setOnboardingId(savedOnboardingId);
+        console.log("Loaded onboarding ID from sessionStorage:", savedOnboardingId);
+        if (savedOnboardingId && savedOnboardingId !== "") {
+          setOnboardingId(savedOnboardingId);
+
+          fetch(`${API_URL}/api/v1/onboarding/${savedOnboardingId}`, {}).then(res => res.json()).then(onboarding => {
+            setApproved(onboarding.status == "APPROVED");
+            setSubmitted(false)
+          })
+
+        }
       } catch (e) {
         console.error("Error loading onboarding progress", e);
       }
@@ -82,13 +92,16 @@ export default function OnboardingPage() {
   }, []);
 
   useEffect(() => {
-    sessionStorage.setItem(
-      "onboarding_progress",
-      JSON.stringify({ stepIndex, data, maxStepReached, onboardingId })
-    );
+    if (stepIndex !== 0) {
+      sessionStorage.setItem(
+        "onboarding_progress",
+        JSON.stringify({ stepIndex, data, maxStepReached, onboardingId })
+      );
+    }
   }, [stepIndex, data, maxStepReached, onboardingId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setError("");
   }, [stepIndex]);
 
@@ -239,6 +252,7 @@ export default function OnboardingPage() {
     let currentOnboardingId = onboardingId;
 
     // 1. Create a new onboarding if we don't have one yet
+    // TODO: add missing parameters
     if (!currentOnboardingId) {
       const createResponse = await fetch(`${API_URL}/api/v1/onboarding/createOnboarding`, {
         method: "POST",
@@ -275,7 +289,7 @@ export default function OnboardingPage() {
 
     if (!response.ok) {
       if (response.status === 404 || result?.message?.includes("Onboarding not found")) {
-        setOnboardingId(null);
+        setOnboardingId("");
         sessionStorage.removeItem("onboarding_progress");
         throw new Error("Your session expired or was not found. Please click Continue again to restart.");
       }
@@ -390,7 +404,9 @@ export default function OnboardingPage() {
             }
           });
           if (!completeRes.ok) {
-             throw new Error("Failed to finalize onboarding.");
+            const errorData = await completeRes.json();
+            console.log(errorData)
+            throw new Error("Failed to finalize onboarding.");
           }
         }
         setSubmitted(true);
@@ -515,12 +531,12 @@ export default function OnboardingPage() {
                   </p>
 
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                    <Link
+                    {/* <Link
                       href="/admin"
                       className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
                     >
                       Check status in operations panel
-                    </Link>
+                    </Link> */}
 
                     <Link
                       href="/"
@@ -530,6 +546,10 @@ export default function OnboardingPage() {
                           </Link>
                         </div>
                       </div>
+                      ) : approved ? (
+                        <div className="rounded-3xl border border-green-200 bg-green-50 p-6 text-slate-800">
+                          <p className="text-lg font-semibold">Congratulations! Your onboarding has been successfully approved</p>
+                        </div>
                       ) : (
                       <form className="space-y-8">
                         {stepIndex === 0 && (

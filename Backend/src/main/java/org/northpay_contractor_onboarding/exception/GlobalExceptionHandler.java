@@ -183,6 +183,7 @@ public class GlobalExceptionHandler {
                 .error("Conflict")
                 .message("Database integrity violation")
                 .timestamp(LocalDateTime.now())
+                .stackTrace(ex.getStackTrace())
                 .build());
     }
 

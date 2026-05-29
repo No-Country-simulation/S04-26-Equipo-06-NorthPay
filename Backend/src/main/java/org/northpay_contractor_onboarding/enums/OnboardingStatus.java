@@ -27,7 +27,7 @@ public enum OnboardingStatus {
 
             case PENDING_VERIFICATION -> nextState == APPROVED || nextState == CHANGES_REQUESTED;
 
-            case CHANGES_REQUESTED -> nextState == PENDING_VERIFICATION;
+            case CHANGES_REQUESTED -> /* nextState == PENDING_VERIFICATION */true; // TODO: forzado para la demo
 
             case APPROVED -> false;
             default -> false;
