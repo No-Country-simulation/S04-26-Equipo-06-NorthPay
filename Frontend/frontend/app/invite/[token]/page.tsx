@@ -24,7 +24,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
 
   const [status, setStatus] = useState<StatusType>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [preloadedData, setPreloadedData] = useState<{ email: string; onboardingId?: string, name: string } | null>(null);
+  const [preloadedData, setPreloadedData] = useState<{ email: string; onboardingId: string, name: string } | null>(null);
 
   const [isDoingRequest, setIsDoingRequest] = useState(false);
   const [tokenFormData, setTokenFormData] = useState({
@@ -36,6 +36,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
     const tokenCookie = getTokenFromCookie();
     console.log("Token from cookie:", tokenCookie);
     if (tokenCookie) {
+      // TODO: agregar revisar cookie si pertenece al contractor del token url, probablemente agregar tokenUrl al jwt en el back
       const tokenPayload = parseJWTPayload() as JWTPayload;
       console.log("Parsed JWT payload:", tokenPayload);
       if (tokenPayload.role === "CONTRACTOR") {
@@ -46,13 +47,14 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
           email: tokenPayload.sub,
           name: sanitizedName,
         }));
+        
         setStatus("success");
       } else {
         setErrorMessage("The provided token does not have the correct role to access this page. Please logout operator session and try again");
         setStatus("error");
       }
     } else {
-      getToken(setStatus, token, setErrorMessage);
+      getToken(setStatus, token, setErrorMessage, setPreloadedData);
     }
   }, [token]);
 
@@ -62,6 +64,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
     const sanitizedName = preloadedData.name && !/^(null\s*)+$/i.test(preloadedData.name.trim()) ? preloadedData.name : "";
     const initialData: OnboardingData = {
       firstName: sanitizedName,
+
       lastName: "",
       email: preloadedData.email,
       phone: "",
@@ -80,9 +83,10 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
     };
 
     // We pass the preloaded email and the onboardingId if we got it from the real backend!
+    console.log(preloadedData, "ID ONBOARDING PRELOADED")
     sessionStorage.setItem(
       "onboarding_progress",
-      JSON.stringify({ stepIndex: 0, data: initialData, maxStepReached: 0, onboardingId: preloadedData.onboardingId || null })
+      JSON.stringify({ stepIndex: 0, data: initialData, maxStepReached: 0, onboardingId: preloadedData.onboardingId })
     );
 
     router.push("/onboarding");
@@ -157,7 +161,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
             {errorMessage || "We had trouble connecting to the server. Please check your internet connection and try again."}
           </p>
           <button
-            onClick={() => getToken(setStatus, token, setErrorMessage)}
+            onClick={() => getToken(setStatus, token, setErrorMessage, setPreloadedData)}
             className="mt-8 inline-block rounded-3xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             Retry

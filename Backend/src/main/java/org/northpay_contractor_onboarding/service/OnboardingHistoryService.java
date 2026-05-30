@@ -23,7 +23,7 @@ public class OnboardingHistoryService implements IOnboardingHistoryService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveOnboardingHistory(RegistroHistoryDTO registroHistoryDTO
     ) {
-
+        System.out.println(registroHistoryDTO.toString());
         var onboardingHistory = OnboardingHistory.builder()
                 .onboarding(registroHistoryDTO.getOnboarding())
                 .newStatus(registroHistoryDTO.getNewStatus())

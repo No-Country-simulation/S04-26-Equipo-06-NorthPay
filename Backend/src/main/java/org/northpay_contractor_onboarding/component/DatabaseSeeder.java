@@ -51,6 +51,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .build();
 
         // contractorRepository.save(contractor); // Removed to prevent Detached entity error due to CascadeType.ALL
+        
 
         Onboarding onboarding = Onboarding.builder()
                 .contractor(contractor)

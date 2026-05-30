@@ -6,6 +6,7 @@ import org.northpay_contractor_onboarding.model.Onboarding;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,6 +16,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 public class RegistroHistoryDTO {
 
     private Onboarding onboarding;
