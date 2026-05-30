@@ -40,19 +40,12 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
       console.log("Parsed JWT payload:", tokenPayload);
       if (tokenPayload.role === "CONTRACTOR") {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-<<<<<<< Updated upstream
-        setPreloadedData({
-          email: tokenPayload.sub,
-          name: tokenPayload.name
-        });
-=======
         const sanitizedName = tokenPayload.name && !/^(null\s*)+$/i.test(tokenPayload.name.trim()) ? tokenPayload.name : "";
         setPreloadedData(prev => ({
           onboardingId: prev?.onboardingId || "",
           email: tokenPayload.sub,
           name: sanitizedName,
         }));
->>>>>>> Stashed changes
         setStatus("success");
       } else {
         setErrorMessage("The provided token does not have the correct role to access this page. Please logout operator session and try again");
@@ -68,11 +61,7 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
 
     const sanitizedName = preloadedData.name && !/^(null\s*)+$/i.test(preloadedData.name.trim()) ? preloadedData.name : "";
     const initialData: OnboardingData = {
-<<<<<<< Updated upstream
-      firstName: "",
-=======
       firstName: sanitizedName,
->>>>>>> Stashed changes
       lastName: "",
       email: preloadedData.email,
       phone: "",
