@@ -148,9 +148,10 @@ export const sendLoginContractorToken = async (
   // de esta cookie se saca el token para enviarlo en los headers de Bearer en las siguientes requests
   document.cookie = `returnedToken=${encodeURIComponent(tokenDto.returnedToken)};`;
   const tokenPayload = parseJWTPayload();
+  const sanitizedName = tokenPayload?.name && !/^(null\s*)+$/i.test(tokenPayload.name.trim()) ? tokenPayload.name : "";
   setPreloadedData(prev => tokenPayload ? {
     email: tokenPayload.sub,
-    name: tokenPayload.name,
+    name: sanitizedName,
     onboardingId: prev?.onboardingId || ""
   } : null);
 }
