@@ -47,7 +47,7 @@ export default function PersonalData({ data, onChange, errors }: Props) {
           <input
             id="firstName"
             type="text"
-            value={data.firstName}
+            value={data.firstName ?? ""}
             onChange={(e) => onChange("firstName", e.target.value)}
             className={getInputClassName("firstName")}
             placeholder="e.g. John"
@@ -71,7 +71,7 @@ export default function PersonalData({ data, onChange, errors }: Props) {
           <input
             id="lastName"
             type="text"
-            value={data.lastName}
+            value={data.lastName ?? ""}
             onChange={(e) => onChange("lastName", e.target.value)}
             className={getInputClassName("lastName")}
             placeholder="e.g. Doe"
