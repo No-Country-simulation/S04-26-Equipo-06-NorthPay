@@ -152,10 +152,6 @@ export const sendLoginContractorToken = async (
   setPreloadedData(prev => tokenPayload ? {
     email: tokenPayload.sub,
     name: sanitizedName,
-    onboardingId: prev?.onboardingId || 
-  setPreloadedData(prev => tokenPayload ? {
-    email: tokenPayload.sub,
-    name: tokenPayload.name,
     onboardingId: prev?.onboardingId || ""
   } : null);
 }
