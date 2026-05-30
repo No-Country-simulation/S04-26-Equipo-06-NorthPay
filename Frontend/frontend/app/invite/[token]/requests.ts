@@ -9,7 +9,8 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080
 export const getToken = async (
   setStatus: (value: SetStateAction<StatusType>) => void,
   token: string,
-  setErrorMessage: (value: SetStateAction<string | null>) => void
+  setErrorMessage: (value: SetStateAction<string | null>) => void,
+  setPreloadedData: (value: SetStateAction<{ email: string; onboardingId: string, name: string } | null>) => void
 ) => {
   setStatus("loading");
   try {
@@ -32,6 +33,12 @@ export const getToken = async (
     }
 
     const data: InvitationTokenResponse = await response.json();
+    setPreloadedData({
+      email: data.contractorEmail,
+      onboardingId: data.onboardingId,
+      name: ""
+    });
+    console.log(data.onboardingId, data)
     if(!data.used) {
       setStatus("first_time");
     }
@@ -97,7 +104,7 @@ export const sendLoginContractorToken = async (
   tokenFormData: { password: string },
   setStatus: (value: SetStateAction<StatusType>) => void,
   setErrorMessage: (value: SetStateAction<string | null>) => void,
-  setPreloadedData: (value: SetStateAction<{ email: string; onboardingId?: string, name: string } | null>) => void,
+  setPreloadedData: (value: SetStateAction<{ email: string; onboardingId: string, name: string } | null>) => void,
   setIsDoingRequest: (value: SetStateAction<boolean>) => void
 ) => {
   e.preventDefault();
@@ -141,16 +148,14 @@ export const sendLoginContractorToken = async (
   // de esta cookie se saca el token para enviarlo en los headers de Bearer en las siguientes requests
   document.cookie = `returnedToken=${encodeURIComponent(tokenDto.returnedToken)};`;
   const tokenPayload = parseJWTPayload();
-<<<<<<< Updated upstream
-  setPreloadedData(tokenPayload ? {
-    email: tokenPayload.sub,
-    name: tokenPayload.name
-=======
   const sanitizedName = tokenPayload?.name && !/^(null\s*)+$/i.test(tokenPayload.name.trim()) ? tokenPayload.name : "";
   setPreloadedData(prev => tokenPayload ? {
     email: tokenPayload.sub,
     name: sanitizedName,
+    onboardingId: prev?.onboardingId || 
+  setPreloadedData(prev => tokenPayload ? {
+    email: tokenPayload.sub,
+    name: tokenPayload.name,
     onboardingId: prev?.onboardingId || ""
->>>>>>> Stashed changes
   } : null);
 }

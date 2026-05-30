@@ -41,6 +41,7 @@ public class StateMachineService {
                     "Transición inválida: No se puede pasar de %s a %s".formatted(currentStatus, nextStatus));
         }
 
+        System.out.println("AAAAAAAAAAAAAAAAAA" + nextStatus);
         onboarding.setStatus(nextStatus);
         var registroHistoryDTO = RegistroHistoryDTO.builder()
                 .onboarding(onboarding)
