@@ -15,6 +15,13 @@ public enum OnboardingStatus {
        if (this == nextState) {
             return true; 
         }
+
+        // Permitimos forzar la transición a APROBADO o CAMBIOS_REQUERIDOS desde cualquier estado
+        // Esto es necesario porque el contratista puede actualizar un paso intermedio (ej. datos personales)
+        // y el operador necesita aprobarlo sin que el contratista llegue hasta el último paso.
+        if (nextState == APPROVED || nextState == CHANGES_REQUESTED) {
+            return true;
+        }
         
         return switch (this) {
             case INVITED -> nextState == PERSONAL_DATA_COMPLETED;

@@ -170,12 +170,14 @@ export default function ReviewModal({ contractorId, onClose, onUpdate }: Props) 
               <h3 className="text-sm font-semibold text-slate-900">Onboarding Progress</h3>
               <p className="mt-1 text-sm text-slate-500">Registration steps completed</p>
             </div>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-              {data.currentStep || 5}/5 steps
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800">
+              {Math.min(data.currentStep || 5, 5)}/5 steps
+              </span>
+            </div>
           </div>
           <div className="h-3 overflow-hidden rounded-full bg-slate-200">
-            <div className={`h-full rounded-full bg-emerald-500 w-full`} style={{ width: `${((data.currentStep || 5)/5)*100}%` }} />
+            <div className={`h-full rounded-full bg-emerald-500 w-full`} style={{ width: `${(Math.min(data.currentStep || 5, 5)/5)*100}%` }} />
           </div>
         </section>
 
@@ -223,7 +225,7 @@ export default function ReviewModal({ contractorId, onClose, onUpdate }: Props) 
                   <dd className="mt-2 space-y-2">
                     {data.documentation?.urlFiles && data.documentation?.urlFiles.length > 0 ? (
                       data.documentation?.urlFiles.map((file: any, i: number) => (
-                        <a href={file.fileUrl} target="_blank" rel="noreferrer" key={i} className="block rounded-2xl bg-white px-3 py-2 text-slate-700 hover:bg-slate-100 transition truncate">
+                        <a href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}${file.fileUrl}`} target="_blank" rel="noreferrer" key={i} className="block rounded-2xl bg-white px-3 py-2 text-slate-700 hover:bg-slate-100 transition truncate">
                           {file.fileType || `Document ${i+1}`}
                         </a>
                       ))
@@ -246,11 +248,27 @@ export default function ReviewModal({ contractorId, onClose, onUpdate }: Props) 
                   <dt className="font-medium text-slate-500">Account:</dt>
                   <dd className="mt-1 break-all text-slate-900">{data.paymentInformation?.account || 'N/A'}</dd>
                 </div>
+              </dl>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-lg font-semibold text-slate-900">Contract</h3>
+              <dl className="mt-5 space-y-4 text-sm">
                 <div>
                   <dt className="font-medium text-slate-500">Contract Signed:</dt>
                   <dd className={`mt-1 font-semibold ${data.paymentInformation?.contractSigned ? "text-emerald-700" : "text-rose-600"}`}>
                     {data.paymentInformation?.contractSigned ? "Yes" : "No"}
                   </dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="text-lg font-semibold text-slate-900">Identity Verification</h3>
+              <dl className="mt-5 space-y-4 text-sm">
+                <div>
+                  <dt className="font-medium text-slate-500">Verification Status/Notes:</dt>
+                  <dd className="mt-1 text-slate-900 break-all">{data.identityVerification?.verificationNotes || 'N/A'}</dd>
                 </div>
               </dl>
             </div>
@@ -274,7 +292,7 @@ export default function ReviewModal({ contractorId, onClose, onUpdate }: Props) 
             <button
               type="button"
               onClick={handleApprove}
-              disabled={isApproving || data.status !== "PENDING_VERIFICATION"}
+              disabled={isApproving || data.status === "APPROVED"}
               className="rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isApproving ? "Approving..." : "Approve Application"}
@@ -282,7 +300,7 @@ export default function ReviewModal({ contractorId, onClose, onUpdate }: Props) 
             <button
               type="button"
               onClick={handleRequestCorrections}
-              disabled={isRejecting || data.status !== "PENDING_VERIFICATION"}
+              disabled={isRejecting || data.status === "APPROVED"}
               className="rounded-2xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isRejecting ? "Requesting..." : "Request Corrections"}

@@ -54,8 +54,13 @@ public class MailSenderService {
     sendEmail(request);
   }
 
-  public void sendOnboardingNeedCorrectionsEmail(String to) {
-    EmailRequestDTO request = EmailRequestDTO.onboardingNeedCorrectionsEmail(to);
+  public void sendOnboardingNeedCorrectionsEmail(String to, String tokenUrl, String reason) {
+    EmailRequestDTO request = EmailRequestDTO.onboardingNeedCorrectionsEmail(to, tokenUrl, reason);
+    sendEmail(request);
+  }
+
+  public void sendOnboardingPendingVerificationEmail(String to) {
+    EmailRequestDTO request = EmailRequestDTO.onboardingPendingVerificationEmail(to);
     sendEmail(request);
   }
 }

@@ -61,6 +61,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const [personalDataErrors, setPersonalDataErrors] = useState<PersonalDataErrors>({});
   const [onboardingId, setOnboardingId] = useState<string>("");
+  const [onboardingStatus, setOnboardingStatus] = useState<string>("");
 
   useEffect(() => {
     const saved = sessionStorage.getItem("onboarding_progress");
@@ -81,7 +82,57 @@ export default function OnboardingPage() {
 
           fetch(`${API_URL}/api/v1/onboarding/${savedOnboardingId}`, {}).then(res => res.json()).then(onboarding => {
             setApproved(onboarding.status == "APPROVED");
-            setSubmitted(false)
+            setOnboardingStatus(onboarding.status);
+            setSubmitted(false);
+            
+            if (onboarding.currentStep) {
+              const backendStep = onboarding.currentStep - 1;
+              setMaxStepReached(backendStep); // Enforce backend step
+              if (typeof savedStepIndex === "undefined" || savedStepIndex > backendStep) {
+                setStepIndex(backendStep);
+              }
+            }
+            
+            if (onboarding.personalData) {
+              setData(prev => ({
+                ...prev,
+                firstName: onboarding.personalData.name || prev.firstName,
+                lastName: onboarding.personalData.lastName || prev.lastName,
+                email: onboarding.personalData.email || prev.email,
+                phone: onboarding.personalData.phoneNumber || prev.phone,
+                country: onboarding.personalData.country || prev.country,
+                address: onboarding.personalData.address || prev.address,
+                dniNumber: onboarding.personalData.dniNumber || prev.dniNumber,
+                verificationNotes: onboarding.personalData.verificationNotes || prev.verificationNotes
+              }));
+            }
+            if (onboarding.documentData) {
+              setData(prev => ({
+                ...prev,
+                documentName: onboarding.documentData.documentName || prev.documentName,
+                documentType: onboarding.documentData.documentType || prev.documentType
+              }));
+            }
+            if (onboarding.contractData) {
+              setData(prev => ({
+                ...prev,
+                contractAccepted: onboarding.contractData.contractAccepted !== null ? onboarding.contractData.contractAccepted : prev.contractAccepted
+              }));
+            }
+            if (onboarding.paymentData) {
+              setData(prev => ({
+                ...prev,
+                paymentMethod: onboarding.paymentData.paymentMethod === "DIGITAL_PLATFORM" ? "wallet" : onboarding.paymentData.paymentMethod === "CRYPTO_CURRENCY" ? "crypto" : prev.paymentMethod,
+                paymentDetails: {
+                  ...prev.paymentDetails,
+                  platform: onboarding.paymentData.platform || prev.paymentDetails.platform,
+                  walletEmail: onboarding.paymentData.walletEmail || prev.paymentDetails.walletEmail,
+                  network: onboarding.paymentData.network || prev.paymentDetails.network,
+                  walletAddress: onboarding.paymentData.walletAddress || prev.paymentDetails.walletAddress
+                },
+                isPaymentVerified: onboarding.paymentData.isPaymentVerified !== null ? onboarding.paymentData.isPaymentVerified : prev.isPaymentVerified
+              }));
+            }
           })
 
         }
@@ -281,6 +332,8 @@ export default function OnboardingPage() {
           phoneNumber: data.phone.trim(),
           country: data.country.trim(),
           address: data.address.trim(),
+          dniNumber: data.dniNumber?.trim() || null,
+          verificationNotes: data.verificationNotes?.trim() || null
         }),
       }
     );
@@ -346,10 +399,22 @@ export default function OnboardingPage() {
         return "PENDING_VERIFICATION";
       }
     }
+
+    if (stepIndex === 4) {
+      if (!data.verificationNotes || !data.verificationNotes.toLowerCase().includes("verification in progress")) {
+        return "Please complete the identity verification step.";
+      }
+    }
     return "";
   };
 
   const handleNext = async () => {
+    // If viewing a previously completed step, just navigate forward without re-saving
+    if (stepIndex < maxStepReached && onboardingStatus !== "CHANGES_REQUESTED") {
+      setStepIndex(stepIndex + 1);
+      return;
+    }
+
     const validation = validateStep();
 
     if (validation) {
@@ -361,7 +426,7 @@ export default function OnboardingPage() {
     setIsProcessing(true);
 
     try {
-      if (stepIndex === 0) {
+      if (stepIndex === 0 || stepIndex === 1 || stepIndex === 4) {
         await submitPersonalData();
       }
 
@@ -468,16 +533,21 @@ export default function OnboardingPage() {
 
             <div className="mt-6 space-y-4">
               {steps.map((title, index) => {
-                const isClickable = true;
+                const isClickable = index <= maxStepReached;
                 const isCurrent = index === stepIndex;
-                const isCompleted = index < stepIndex;
+                const isCompleted = index < stepIndex || (index < maxStepReached);
 
                 return (
                   <button
                     key={title}
                     type="button"
-                    onClick={() => isClickable && setStepIndex(index)}
-                    disabled={!isClickable}
+                    onClick={() => {
+                      if (isClickable) {
+                        setStepIndex(index);
+                      } else {
+                        setError("You cannot skip ahead. Please complete the current step first.");
+                      }
+                    }}
                     className={`flex w-full items-center gap-3 text-left transition ${isClickable
                         ? "cursor-pointer hover:opacity-80"
                         : "cursor-not-allowed opacity-50"
@@ -552,13 +622,14 @@ export default function OnboardingPage() {
                         </div>
                       ) : (
                       <form className="space-y-8">
-                        {stepIndex === 0 && (
-                          <PersonalData
-                            data={data}
-                            onChange={handleChange}
-                            errors={personalDataErrors}
-                          />
-                        )}
+                        <fieldset disabled={stepIndex < maxStepReached && onboardingStatus !== "CHANGES_REQUESTED"}>
+                          {stepIndex === 0 && (
+                            <PersonalData
+                              data={data}
+                              onChange={handleChange}
+                              errors={personalDataErrors}
+                            />
+                          )}
 
                         {stepIndex === 1 && (
                           <DocumentUpload data={data} onChange={handleChange} onboardingId={onboardingId || ""} />
@@ -581,6 +652,7 @@ export default function OnboardingPage() {
       <IdentityVerification data={data} onChange={handleChange} />
     )
   }
+  </fieldset>
 
   {
     error && (
@@ -615,12 +687,12 @@ export default function OnboardingPage() {
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           Saving...
             </>
+          ) : (stepIndex < maxStepReached && onboardingStatus !== "CHANGES_REQUESTED") ? (
+            "Next Step"
           ) : stepIndex === steps.length - 1 ? (
             "Submit application"
-          ) : stepIndex === 0 ? (
-            "Continue"
           ) : (
-            "Next step"
+            "Continue"
           )}
         </button>
   </div>

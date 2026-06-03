@@ -64,7 +64,7 @@ services:
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
-    command: npx next dev --turbopack --hostname 0.0.0.0
+    command: npx next dev --webpack --hostname 0.0.0.0
 
 networks:
   northpay-network:

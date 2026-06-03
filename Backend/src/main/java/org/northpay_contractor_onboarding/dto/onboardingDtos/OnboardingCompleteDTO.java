@@ -22,6 +22,7 @@ public class OnboardingCompleteDTO {
         private PersonalInfoSection personalInformation;
         private DocumentationSection documentation;
         private PaymentAndContractSection paymentInformation;
+        private IdentityVerificationSection identityVerification;
 
         public OnboardingCompleteDTO(Onboarding onboarding) {
                 if (onboarding == null)
@@ -43,7 +44,13 @@ public class OnboardingCompleteDTO {
                 String country = "N/A";
 
                 if (personalData != null) {
-                        completeName = personalData.getFirstName() + " " + personalData.getLastName();
+                        String firstName = personalData.getFirstName();
+                        String lastName = personalData.getLastName();
+                        if (firstName == null && lastName == null) {
+                                completeName = "Guest";
+                        } else {
+                                completeName = ((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "")).trim();
+                        }
 
                         String rawEmail = personalData.getEmail();
                         email = (rawEmail != null) ? rawEmail.replaceAll("(?<=.{3}).(?=.*@)", "*") : "Pending";
@@ -53,6 +60,17 @@ public class OnboardingCompleteDTO {
                                 phone = "xxxx-xxxx-" + rawPhone.substring(rawPhone.length() - 4);
                         } else {
                                 phone = (rawPhone != null) ? rawPhone : "N/A";
+                        }
+                        
+                        String rawCountry = personalData.getContactInformation().getCountry();
+                        country = (rawCountry != null) ? rawCountry : "N/A";
+
+                        String rawAddress = personalData.getContactInformation().getAddress();
+                        // Censuramos la dirección parcialmente por privacidad
+                        if (rawAddress != null && rawAddress.length() > 5) {
+                                address = rawAddress.substring(0, 3) + "***";
+                        } else {
+                                address = (rawAddress != null) ? rawAddress : "N/A";
                         }
                 }
 
@@ -67,11 +85,10 @@ public class OnboardingCompleteDTO {
 
                         String typeDoc = (firstDoc != null && firstDoc.getFileType() != null) ? firstDoc.getFileType()
                                         : "DNI";
-                        
-                        String numDoc = "42345678";
+                        String numDoc = (personalData != null && personalData.getTextId() != null) ? personalData.getTextId() : "N/A";
 
                         String maskedDoc = numDoc.length() > 4 ? "xx.xxx." + numDoc.substring(numDoc.length() - 3)
-                                        : "****";
+                                        : numDoc;
 
                         this.documentation = new DocumentationSection(typeDoc, maskedDoc, fileMap);
                 }
@@ -111,6 +128,10 @@ public class OnboardingCompleteDTO {
                                 walletAddress,
                                 accountDetail,
                                 signed);
+
+                String verificationNotes = (personalData != null && personalData.getVerificationNotes() != null) 
+                                        ? personalData.getVerificationNotes() : "N/A";
+                this.identityVerification = new IdentityVerificationSection(verificationNotes);
         }
 
 }

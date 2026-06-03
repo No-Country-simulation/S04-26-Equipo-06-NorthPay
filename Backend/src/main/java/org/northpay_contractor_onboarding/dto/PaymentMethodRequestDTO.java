@@ -19,5 +19,6 @@ public class PaymentMethodRequestDTO {
     private String network;
     private String walletAddress;
     private UUID onboarding_id;
+    private String verificationNotes;
 
 }
