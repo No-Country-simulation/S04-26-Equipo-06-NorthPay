@@ -78,6 +78,7 @@ public class PaymentMethodService implements IPaymentMethodService{
                 .walletAddress(paymentMethod.getWalletAddress())
                 .created_at(LocalDateTime.now())
                 .isPaymentVerified(false)
+                .verificationNotes(paymentMethod.getVerificationNotes())
                 .onboarding(onboarding)
                 .build();
 
@@ -122,6 +123,10 @@ public class PaymentMethodService implements IPaymentMethodService{
         if(paymentMethod.getWalletAddress() != null && !paymentMethod.getWalletAddress().isBlank()){
             paymentMethodEntity.setWalletAddress(
                     paymentMethod.getWalletAddress());
+        }
+
+        if(paymentMethod.getVerificationNotes() != null){
+            paymentMethodEntity.setVerificationNotes(paymentMethod.getVerificationNotes());
         }
 
         PaymentMethod paymentMethodUpdated = paymentMethodRepository.save(paymentMethodEntity);

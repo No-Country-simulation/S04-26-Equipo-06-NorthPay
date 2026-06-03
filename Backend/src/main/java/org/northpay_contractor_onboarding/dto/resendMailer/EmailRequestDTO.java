@@ -37,7 +37,7 @@ public record EmailRequestDTO (
     .build();
   }
 
-  public static EmailRequestDTO onboardingNeedCorrectionsEmail(String to) {
+  public static EmailRequestDTO onboardingNeedCorrectionsEmail(String to, String tokenUrl, String reason) {
     return EmailRequestDTO.builder()
       .from("onboarding@resend.dev")
       .to(List.of(to))
@@ -45,7 +45,13 @@ public record EmailRequestDTO (
       .html("""
         <h1>Onboarding Needs Corrections</h1>
         <p>Your onboarding submission needs corrections. Please review the feedback and resubmit.</p>
-      """)
+        <div style="background-color: #f8fafc; border-left: 4px solid #0284c7; padding: 16px; margin: 16px 0; color: #334155;">
+          <strong>Operator Notes:</strong><br/>
+          %s
+        </div>
+        <br/>
+        <a href="http://localhost:3000/invite/%s">Click here to log in and update your onboarding</a>
+      """.formatted(reason, tokenUrl))
     .build();
   }
 
@@ -57,6 +63,18 @@ public record EmailRequestDTO (
       .html("""
         <h1>Onboarding Approved</h1>
         <p>Congratulations! Your onboarding has been approved.</p>
+      """)
+    .build();
+  }
+
+  public static EmailRequestDTO onboardingPendingVerificationEmail(String to) {
+    return EmailRequestDTO.builder()
+      .from("onboarding@resend.dev")
+      .to(List.of(to))
+      .subject("Onboarding Pending Verification")
+      .html("""
+        <h1>Onboarding Submitted</h1>
+        <p>Your onboarding application has been successfully submitted and is currently pending verification. You will be notified once our team reviews your information.</p>
       """)
     .build();
   }

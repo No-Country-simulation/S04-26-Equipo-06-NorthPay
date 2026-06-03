@@ -31,6 +31,8 @@ public class Contractor {
     private String lastName;
     @Column(name = "text_id")
     private String textId;
+    @Column(name = "verification_notes")
+    private String verificationNotes;
     @Embedded
     private ContactInformation contactInformation;
     @Column(name = "created_at")

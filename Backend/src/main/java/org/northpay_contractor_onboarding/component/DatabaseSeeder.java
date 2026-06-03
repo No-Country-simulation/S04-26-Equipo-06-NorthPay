@@ -4,14 +4,16 @@ import org.northpay_contractor_onboarding.enums.OnboardingStatus;
 import org.northpay_contractor_onboarding.model.ContactInformation;
 import org.northpay_contractor_onboarding.model.Contractor;
 import org.northpay_contractor_onboarding.model.Onboarding;
-import org.northpay_contractor_onboarding.repository.ContractorRepository;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
+import org.northpay_contractor_onboarding.repository.InvitationTokenRepository;
+import org.northpay_contractor_onboarding.model.InvitationTokens;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import java.time.ZoneId;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Component
 public class DatabaseSeeder implements CommandLineRunner {
@@ -20,7 +22,7 @@ public class DatabaseSeeder implements CommandLineRunner {
     private OnboardingRepository onboardingRepository;
 
     @Autowired
-    private ContractorRepository contractorRepository;
+    private InvitationTokenRepository invitationTokenRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -48,10 +50,7 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .lastName(lastName)
                 .contactInformation(new ContactInformation(email, "Argentina", "+541112345678", "Av. Corrientes 1234"))
                 .createdAt(LocalDateTime.now().minusDays((long) (Math.random() * 30)))
-                .build();
-
-        // contractorRepository.save(contractor); // Removed to prevent Detached entity error due to CascadeType.ALL
-        
+                .build();        
 
         Onboarding onboarding = Onboarding.builder()
                 .contractor(contractor)
@@ -62,5 +61,25 @@ public class DatabaseSeeder implements CommandLineRunner {
                 .build();
 
         onboardingRepository.save(onboarding);
+
+        if (status != OnboardingStatus.INVITED) {
+            long randomMinutes = 5 + (long)(Math.random() * 120); // between 5 and 125 minutes
+            LocalDateTime activatedTime = onboarding.getCreatedAt().plusMinutes(randomMinutes);
+            
+            InvitationTokens token = InvitationTokens.builder()
+                .tokenUrl(UUID.randomUUID().toString())
+                .used(true)
+                .isValid(true)
+                .contractorEmail(email)
+                .password("seeded_password")
+                .operatorEmail("admin@northpay.com")
+                .createdAt(onboarding.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant())
+                .activatedAt(activatedTime)
+                .expiresAt(onboarding.getCreatedAt().plusDays(7))
+                .onboarding(onboarding)
+                .build();
+                
+            invitationTokenRepository.save(token);
+        }
     }
 }

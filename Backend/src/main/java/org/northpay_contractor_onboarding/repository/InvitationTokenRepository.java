@@ -13,6 +13,8 @@ import org.springframework.data.jpa.repository.Query;
 public interface InvitationTokenRepository extends JpaRepository<InvitationTokens, UUID> {
   Optional<InvitationTokens> findByTokenUrl(String tokenUrl);
 
+  Optional<InvitationTokens> findFirstByOnboardingIdOrderByCreatedAtDesc(UUID onboardingId);
+
   @Query("select invToken.onboarding.contractor.firstName, invToken.onboarding.contractor.lastName from InvitationTokens invToken where invToken.tokenUrl = :tokenUrl")
   ContractorNameDTO getRelatedContractorNameByTokenUrl(String tokenUrl);
 
