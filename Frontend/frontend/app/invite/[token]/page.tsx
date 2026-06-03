@@ -35,27 +35,36 @@ export default function InviteWelcomePage({ params }: { params: Promise<{ token:
   useEffect(() => {
     const tokenCookie = getTokenFromCookie();
     console.log("Token from cookie:", tokenCookie);
-    if (tokenCookie) {
-      // TODO: agregar revisar cookie si pertenece al contractor del token url, probablemente agregar tokenUrl al jwt en el back
-      const tokenPayload = parseJWTPayload() as JWTPayload;
-      console.log("Parsed JWT payload:", tokenPayload);
-      if (tokenPayload.role === "CONTRACTOR") {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        const sanitizedName = tokenPayload.name && !/^(null\s*)+$/i.test(tokenPayload.name.trim()) ? tokenPayload.name : "";
-        setPreloadedData(prev => ({
-          onboardingId: prev?.onboardingId || "",
-          email: tokenPayload.sub,
-          name: sanitizedName,
-        }));
-        
-        setStatus("success");
-      } else {
-        setErrorMessage("The provided token does not have the correct role to access this page. Please logout operator session and try again");
-        setStatus("error");
-      }
-    } else {
-      getToken(setStatus, token, setErrorMessage, setPreloadedData);
-    }
+
+    // Always fetch the token details to get the onboardingId
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/v1/invitation-token/validate/${token}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        const fetchedOnboardingId = data?.onboardingId || "";
+
+        if (tokenCookie) {
+          const tokenPayload = parseJWTPayload() as JWTPayload;
+          console.log("Parsed JWT payload:", tokenPayload);
+          if (tokenPayload.role === "CONTRACTOR") {
+            const sanitizedName = tokenPayload.name && !/^(null\s*)+$/i.test(tokenPayload.name.trim()) ? tokenPayload.name : "";
+            setPreloadedData({
+              onboardingId: fetchedOnboardingId,
+              email: tokenPayload.sub,
+              name: sanitizedName,
+            });
+            setStatus("success");
+          } else {
+            setErrorMessage("The provided token does not have the correct role to access this page. Please logout operator session and try again");
+            setStatus("error");
+          }
+        } else {
+          getToken(setStatus, token, setErrorMessage, setPreloadedData);
+        }
+      })
+      .catch(e => {
+        console.error(e);
+        if (!tokenCookie) getToken(setStatus, token, setErrorMessage, setPreloadedData);
+      });
   }, [token]);
 
   const handleStartProcess = () => {

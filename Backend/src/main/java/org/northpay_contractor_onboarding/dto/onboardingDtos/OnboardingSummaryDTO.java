@@ -26,7 +26,13 @@ public class OnboardingSummaryDTO {
     public OnboardingSummaryDTO(ApprovalStatus approvalStatus , Onboarding onboarding) {
     this.id = onboarding.getId();
     this.applicantEmail = onboarding.getContractor().getEmail();
-    this.applicantName = onboarding.getContractor().getFirstName() + " " + onboarding.getContractor().getLastName();
+    String firstName = onboarding.getContractor().getFirstName();
+    String lastName = onboarding.getContractor().getLastName();
+    if (firstName == null && lastName == null) {
+        this.applicantName = "Guest";
+    } else {
+        this.applicantName = ((firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "")).trim();
+    }
     this.status = onboarding.getStatus();
     this.updatedAt = onboarding.getUpdatedAt();
     this.createdAt = onboarding.getCreatedAt();

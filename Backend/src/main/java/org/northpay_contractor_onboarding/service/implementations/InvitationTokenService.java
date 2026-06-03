@@ -2,6 +2,8 @@ package org.northpay_contractor_onboarding.service.implementations;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -80,8 +82,15 @@ public class InvitationTokenService implements IInvitationTokenService {
       .onboarding(onboardingFather)
     .build());
 
+    // Format date for Argentina
+    ZoneId argentinaZone = ZoneId.of("America/Argentina/Buenos_Aires");
+    String formattedExpiration = newInvToken.getExpiresAt()
+        .atZone(ZoneId.systemDefault())
+        .withZoneSameInstant(argentinaZone)
+        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + " hs";
+
     // envío de mail
-    mailSenderService.sendInvitationEmail(contractorEmail, newInvToken.getTokenUrl(), newInvToken.getExpiresAt().toString());
+    mailSenderService.sendInvitationEmail(contractorEmail, newInvToken.getTokenUrl(), formattedExpiration);
 
     return InvitationTokenDTO.builder()
       .id(newInvToken.getId().toString())

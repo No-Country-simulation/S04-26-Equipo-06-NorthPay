@@ -24,6 +24,8 @@ public class ContractorService implements IContractorService {
                 .id(contractorId) // si esto es nulo se crearía una nueva entidad, sino actualizaría la ya existente
                 .firstName(requestOnboarding.getName())
                 .lastName(requestOnboarding.getLastName())
+                .textId(requestOnboarding.getDniNumber())
+                .verificationNotes(requestOnboarding.getVerificationNotes())
                 .createdAt(LocalDateTime.now())
                 .contactInformation(ContactInformation.builder()
                         .email(requestOnboarding.getEmail())

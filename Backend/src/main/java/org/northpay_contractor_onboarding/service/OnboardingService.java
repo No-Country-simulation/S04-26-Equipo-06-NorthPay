@@ -19,6 +19,8 @@ import org.northpay_contractor_onboarding.model.Onboarding;
 import org.northpay_contractor_onboarding.model.OnboardingReview;
 import org.northpay_contractor_onboarding.repository.OnboardingRepository;
 import org.northpay_contractor_onboarding.repository.OnboardingReviewRepository;
+import org.northpay_contractor_onboarding.repository.InvitationTokenRepository;
+import org.northpay_contractor_onboarding.model.InvitationTokens;
 import org.northpay_contractor_onboarding.security.authentication.AuthenticatedUserDetails;
 import org.northpay_contractor_onboarding.service.interfaces.IInvitationTokenService;
 import org.springframework.data.domain.Page;
@@ -40,6 +42,7 @@ public class OnboardingService implements IOnboardiIngService {
         private final StateMachineService stateMachineService;
         private final MetricsService metricsService;
         private final MailSenderService mailSenderService;
+        private final InvitationTokenRepository invitationTokenRepository;
 
         @Override
         @Transactional
@@ -56,7 +59,9 @@ public class OnboardingService implements IOnboardiIngService {
                 onboarding.setContractor(dbContractor);
                 onboarding.setUpdatedAt(LocalDateTime.now());
 
-                stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "USER");
+                if (onboarding.getStatus() == OnboardingStatus.INVITED) {
+                    stateMachineService.transitionTo(onboarding, OnboardingStatus.PERSONAL_DATA_COMPLETED, "USER");
+                }
                 
                 if(onboarding.getCurrentStep() == 1){
                        onboarding.setCurrentStep(2);
@@ -105,6 +110,8 @@ public class OnboardingService implements IOnboardiIngService {
                 onboarding.setCurrentStep(6);
 
                 var dbOnboarding = onboardingRepository.save(onboarding);
+
+                mailSenderService.sendOnboardingPendingVerificationEmail(dbOnboarding.getContractor().getEmail());
 
                 return new OnboardingDTO(dbOnboarding);
         }
@@ -204,7 +211,10 @@ public class OnboardingService implements IOnboardiIngService {
 
                 var dbOnboarding = onboardingRepository.save(onboardingDb);
 
-                mailSenderService.sendOnboardingNeedCorrectionsEmail(onboardingDb.getContractor().getEmail());
+                InvitationTokens token = invitationTokenRepository.findFirstByOnboardingIdOrderByCreatedAtDesc(onboardingDb.getId())
+                                .orElseThrow(() -> new NotFoundException("Token not found for onboarding"));
+
+                mailSenderService.sendOnboardingNeedCorrectionsEmail(onboardingDb.getContractor().getEmail(), token.getTokenUrl(), responseOnboardig.getReason());
 
                 return new OnboardingDTO(dbOnboarding);
         }
